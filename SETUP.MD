@@ -5,8 +5,8 @@
 
 ##### Setting Up AWS Bukkit:
 
-Setting Up -  https://www.youtube.com/watch?v=i4YFFWcyeFM
-Getting your Acess keys - https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/
+1. Setting Up -  https://www.youtube.com/watch?v=i4YFFWcyeFM
+2. Getting your Acess keys - https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/
 
 ##### Step 1: Setting up the release plugin
 
