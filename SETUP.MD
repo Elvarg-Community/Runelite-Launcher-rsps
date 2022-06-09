@@ -3,6 +3,11 @@
 ##### Requirements:
 1. Amazon AWS Bukkit or some Hosting Platform, The plugin by defualt uses AWS Bukkit
 
+##### Setting Up AWS Bukkit:
+
+Setting Up -  https://www.youtube.com/watch?v=i4YFFWcyeFM
+Getting your Acess keys - https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/
+
 ##### Step 1: Setting up the release plugin
 
 * First copy the release plugin from my repo to your project here are the places to note
