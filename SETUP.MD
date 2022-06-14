@@ -1,9 +1,9 @@
 # Setting Up
 
 ##### Requirements:
-1. Amazon AWS Bukkit or some Hosting Platform, The plugin by defualt uses AWS Bukkit
+1. Amazon AWS Bucket or some Hosting Platform, The plugin by defualt uses AWS Bucket
 
-##### Setting Up AWS Bukkit:
+##### Setting Up AWS Bucket:
 
 1. Setting Up -  https://www.youtube.com/watch?v=i4YFFWcyeFM
 2. Getting your Acess keys - https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/
