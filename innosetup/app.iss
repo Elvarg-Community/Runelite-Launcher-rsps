@@ -3,7 +3,7 @@ AppName=Elvarg Launcher
 AppPublisher=Elvarg
 UninstallDisplayName=Elvarg
 AppVersion=${project.version}
-AppSupportURL=https://runelite.net/
+AppSupportURL=https://elvarg.net/
 DefaultDirName={localappdata}\Elvarg
 
 ; ~30 mb for the repo the launcher downloads
@@ -11,19 +11,16 @@ ExtraDiskSpaceRequired=30000000
 ArchitecturesAllowed=x64
 PrivilegesRequired=lowest
 
-WizardSmallImageFile=${basedir}/innosetup/app_small.bmp
-SetupIconFile=${basedir}/app.ico
+WizardSmallImageFile=${basedir}/app_small.bmp
 WizardImageFile=${basedir}/left.bmp
+SetupIconFile=${basedir}/app.ico
 UninstallDisplayIcon={app}\Elvarg.exe
 
 Compression=lzma2
 SolidCompression=yes
 
 OutputDir=${basedir}
-OutputBaseFilename=ElvargSetup64
-
-[Setup]
-DefaultGroupName={#AppPublisher}\{#AppName}
+OutputBaseFilename=RuneLiteSetup
 
 [Tasks]
 Name: DesktopIcon; Description: "Create a &desktop icon";
@@ -40,8 +37,8 @@ Source: "${basedir}\native-win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesub
 
 [Icons]
 ; start menu
-Name: "{userprograms}\Elvarg"; IconFilename: "{app}\app.ico"; Filename: "{app}\Elvarg.exe"
-Name: "{userdesktop}\Elvarg"; IconFilename: "{app}\app.ico"; Filename: "{app}\Elvarg.exe"; Tasks: DesktopIcon
+Name: "{userprograms}\Elvarg"; Filename: "{app}\Elvarg.exe"
+Name: "{userdesktop}\Elvarg"; Filename: "{app}\Elvarg.exe"; Tasks: DesktopIcon
 
 [Run]
 Filename: "{app}\Elvarg.exe"; Parameters: "--postinstall"; Flags: nowait
