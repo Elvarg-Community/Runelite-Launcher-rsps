@@ -67,9 +67,10 @@ public class FatalErrorDialog extends JDialog
 
 	public FatalErrorDialog(String message)
 	{
+		String finalMessage = message.replace("{name}",LauncherProperties.getApplicationName()).replace("{link}",LauncherProperties.getWebsiteLink());
 		if (alreadyOpen.getAndSet(true))
 		{
-			throw new IllegalStateException("Fatal error during fatal error: " + message);
+			throw new IllegalStateException("Fatal error during fatal error: " + finalMessage);
 		}
 
 		try
@@ -107,7 +108,7 @@ public class FatalErrorDialog extends JDialog
 			}
 		});
 
-		setTitle("Fatal error starting RuneLite");
+		setTitle("Fatal error starting " + LauncherProperties.getApplicationName());
 		setLayout(new BorderLayout());
 
 		Container pane = getContentPane();
@@ -117,14 +118,14 @@ public class FatalErrorDialog extends JDialog
 		leftPane.setBackground(DARKER_GRAY_COLOR);
 		leftPane.setLayout(new BorderLayout());
 
-		JLabel title = new JLabel("There was a fatal error starting RuneLite");
+		JLabel title = new JLabel("There was a fatal error starting " + LauncherProperties.getApplicationName());
 		title.setForeground(Color.WHITE);
 		title.setFont(font.deriveFont(16.f));
 		title.setBorder(new EmptyBorder(10, 10, 10, 10));
 		leftPane.add(title, BorderLayout.NORTH);
 
 		leftPane.setPreferredSize(new Dimension(400, 200));
-		JTextArea textArea = new JTextArea(message);
+		JTextArea textArea = new JTextArea(finalMessage);
 		textArea.setFont(font);
 		textArea.setBackground(DARKER_GRAY_COLOR);
 		textArea.setForeground(Color.LIGHT_GRAY);
@@ -200,7 +201,7 @@ public class FatalErrorDialog extends JDialog
 	{
 		if (err instanceof VerificationException || err instanceof GeneralSecurityException)
 		{
-			new FatalErrorDialog("RuneLite was unable to verify the security of its connection to the internet while " +
+			new FatalErrorDialog("{name} was unable to verify the security of its connection to the internet while " +
 				action + ". You may have a misbehaving antivirus, internet service provider, a proxy, or an incomplete" +
 				" java installation.")
 				.open();
@@ -209,7 +210,7 @@ public class FatalErrorDialog extends JDialog
 
 		if (err instanceof ConnectException)
 		{
-			new FatalErrorDialog("RuneLite is unable to connect to a required server while " + action + ". " +
+			new FatalErrorDialog("{name} is unable to connect to a required server while " + action + ". " +
 				"Please check your internet connection")
 				.open();
 			return;
@@ -217,7 +218,7 @@ public class FatalErrorDialog extends JDialog
 
 		if (err instanceof UnknownHostException)
 		{
-			new FatalErrorDialog("RuneLite is unable to resolve the address of a required server while " + action + ". " +
+			new FatalErrorDialog("{name} is unable to resolve the address of a required server while " + action + ". " +
 				"Your DNS resolver may be misconfigured, pointing to an inaccurate resolver, or your internet connection may " +
 				"be down. ")
 				.addButton("Change your DNS resolver", () -> LinkBrowser.browse(LauncherProperties.getDNSChangeLink()))
@@ -229,13 +230,13 @@ public class FatalErrorDialog extends JDialog
 		{
 			if (err.getCause() instanceof CertificateException)
 			{
-				new FatalErrorDialog("RuneLite was unable to verify the certificate of a required server while " + action + ". " +
+				new FatalErrorDialog("{name} was unable to verify the certificate of a required server while " + action + ". " +
 					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.")
 					.open();
 			}
 			else
 			{
-				new FatalErrorDialog("RuneLite was unable to establish a SSL/TLS connection with a required server while " + action + ". " +
+				new FatalErrorDialog("{name} was unable to establish a SSL/TLS connection with a required server while " + action + ". " +
 					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.")
 					.open();
 			}
@@ -243,6 +244,6 @@ public class FatalErrorDialog extends JDialog
 			return;
 		}
 
-		new FatalErrorDialog("RuneLite encountered a fatal error while " + action + ".").open();
+		new FatalErrorDialog("{name} encountered a fatal error while " + action + ".").open();
 	}
 }

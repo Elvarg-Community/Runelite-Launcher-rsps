@@ -2,19 +2,19 @@
 
 set -e
 
-JDK_VER="11.0.8"
-JDK_BUILD="10"
+JDK_VER="11.0.16"
+JDK_BUILD="8"
 PACKR_VERSION="runelite-1.3"
-APPIMAGE_VERSION="12"
+APPIMAGE_VERSION="13"
 
 umask 022
 
 if ! [ -f OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
     curl -Lo OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
-        https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
+        https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
 fi
 
-echo "98615b1b369509965a612232622d39b5cefe117d6189179cbad4dcef2ee2f4e1 OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
+echo "74988677f1e1692f8f482ae5f75814b908bb3cf5a8b7d9872873a42e330e7595 OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
@@ -34,20 +34,20 @@ echo "f200fb7088dbb5e61e0835fe7b0d7fc1310beda192dacd764927567dcd7c4f0f  packr_${
 # Note: Host umask may have checked out this directory with g/o permissions blank
 chmod -R u=rwX,go=rX appimage
 # ...ditto for the build process
-chmod 644 target/RuneLite.jar
+chmod 644 target/Elvarg.jar
 
 java -jar packr_${PACKR_VERSION}.jar \
     packr/linux-x64-config.json
 
-pushd native-linux-x86_64/RuneLite.AppDir
+pushd native-linux-x86_64/Elvarg.AppDir
 mkdir -p jre/lib/amd64/server/
 ln -s ../../server/libjvm.so jre/lib/amd64/server/ # packr looks for libjvm at this hardcoded path
 
 # Symlink AppRun -> RuneLite
-ln -s RuneLite AppRun
+ln -s Elvarg AppRun
 
 # Ensure RuneLite is executable to all users
-chmod 755 RuneLite
+chmod 755 Elvarg
 popd
 
 if ! [ -f appimagetool-x86_64.AppImage ] ; then
@@ -56,8 +56,8 @@ if ! [ -f appimagetool-x86_64.AppImage ] ; then
     chmod +x appimagetool-x86_64.AppImage
 fi
 
-echo "d918b4df547b388ef253f3c9e7f6529ca81a885395c31f619d9aaf7030499a13  appimagetool-x86_64.AppImage" | sha256sum -c
+echo "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb  appimagetool-x86_64.AppImage" | sha256sum -c
 
 ./appimagetool-x86_64.AppImage \
-	native-linux-x86_64/RuneLite.AppDir/ \
-	native-linux-x86_64/RuneLite.AppImage
+	native-linux-x86_64/Elvarg.AppDir/ \
+	native-linux-x86_64/Elvarg.AppImage

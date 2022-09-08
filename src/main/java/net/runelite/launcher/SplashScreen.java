@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SplashScreen extends JFrame implements ActionListener
 {
-	private static final Color BRAND_ORANGE = new Color(220, 138, 0);
+	public static final Color BRAND_ORANGE = new Color(13, 158, 204);
 	private static final Color DARKER_GRAY_COLOR = new Color(30, 30, 30);
 
 	private static final int WIDTH = 200;
@@ -71,7 +71,7 @@ public class SplashScreen extends JFrame implements ActionListener
 	{
 		BufferedImage logo = ImageIO.read(SplashScreen.class.getResourceAsStream("runelite_transparent.png"));
 
-		setTitle("RuneLite Launcher");
+		setTitle(LauncherProperties.getApplicationName() + " Launcher");
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setUndecorated(true);

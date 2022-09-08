@@ -1,10 +1,10 @@
 {
     "platform": "macaarch64",
-    "icon": "packr/runelite.icns",
+    "icon": "packr/app.icns",
     "jdk": "osx-aarch64-jdk",
-    "executable": "RuneLite",
+    "executable": "Elvarg",
     "classpath": [
-        "target/RuneLite.jar"
+        "target/Elvarg.jar"
     ],
     "mainclass": "net.runelite.launcher.Launcher",
     "vmargs": [
@@ -15,5 +15,5 @@
        "--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED",
        "--add-opens=java.desktop/sun.awt=ALL-UNNAMED"
     ],
-    "output": "native-osx-aarch64/RuneLite.app"
+    "output": "native-osx-aarch64/Elvarg.app"
 }

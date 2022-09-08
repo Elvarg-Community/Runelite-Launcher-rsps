@@ -1,9 +1,9 @@
 {
     "platform": "linux64",
     "jdk": "linux-jdk",
-    "executable": "RuneLite",
+    "executable": "Elvarg",
     "classpath": [
-        "target/RuneLite.jar"
+        "target/Elvarg.jar"
     ],
     "mainclass": "net.runelite.launcher.Launcher",
     "vmargs": [
@@ -12,9 +12,9 @@
        "-Xss2m",
        "-XX:CompileThreshold=1500"
     ],
-    "output": "native-linux-x86_64/RuneLite.AppDir/",
+    "output": "native-linux-x86_64/Elvarg.AppDir/",
     "resources": [
-      "target/filtered-resources/runelite.desktop",
-      "appimage/runelite.png"
+      "target/filtered-resources/app.desktop",
+      "appimage/app.png"
     ]
 }

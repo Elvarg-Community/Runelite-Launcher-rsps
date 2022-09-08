@@ -1,18 +1,19 @@
 #!/bin/bash
 
-set -e
 
-JDK_VER="11.0.8"
-JDK_BUILD="10"
-JDK_BUILD_SHORT="10"
-PACKR_VERSION="runelite-1.3"
+
+JDK_VER="11.0.16"
+JDK_BUILD="8"
+JDK_BUILD_SHORT="8"
+PACKR_VERSION="runelite-1.5"
+PACKR_HASH="b38283101e5623f6b3ce2b35052a229c5c2ed842741651ca201f0145fd79f1f9"
 
 if ! [ -f OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip ] ; then
     curl -Lo OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip \
-        https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD_SHORT}.zip
+        https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD_SHORT}.zip
 fi
 
-echo "00e0eb7112a4cdbaae663110e4c7af6377d2fa01f69c20222790293b4f427f26 OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip" | sha256sum -c
+echo "4da2313441de81e289b25b5ea36f10ab14f8c0f16085fb33eabcda502b1f6457 OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
@@ -27,26 +28,14 @@ if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
         https://github.com/runelite/packr/releases/download/${PACKR_VERSION}/packr.jar
 fi
 
-echo "f200fb7088dbb5e61e0835fe7b0d7fc1310beda192dacd764927567dcd7c4f0f  packr_${PACKR_VERSION}.jar" | sha256sum -c
+echo "${PACKR_HASH}  packr_${PACKR_VERSION}.jar" | sha256sum -c
 
 java -jar packr_${PACKR_VERSION}.jar \
     packr/win-x86-config.json
 
-# modify packr exe manifest to enable Windows dpi scaling
-resourcehacker \
-    -open native-win32/RuneLite.exe \
-    -save native-win32/RuneLite.exe \
-    -action addoverwrite \
-    -res packr/runelite.manifest \
-    -mask MANIFEST,1,
-
-# packr on Windows doesn't support icons, so we use resourcehacker to include it
-resourcehacker \
-    -open native-win32/RuneLite.exe \
-    -save native-win32/RuneLite.exe \
-    -action add \
-    -res runelite.ico \
-    -mask ICONGROUP,MAINICON,
+tools/rcedit-x64 native-win32/Elvarg.exe \
+  --application-manifest packr/app.manifest \
+  --set-icon app.ico
 
 # We use the filtered iss file
-iscc target/filtered-resources/runelite32.iss
+iscc target/filtered-resources/app32.iss

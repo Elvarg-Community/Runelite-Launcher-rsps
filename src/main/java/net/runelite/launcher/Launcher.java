@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -66,6 +68,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -94,7 +97,7 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class Launcher
 {
-	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".test");
+	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".elvarg");
 	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
@@ -137,7 +140,7 @@ public class Launcher
 		{
 			log.error("unable to parse arguments", ex);
 			SwingUtilities.invokeLater(() ->
-				new FatalErrorDialog("RuneLite was unable to parse the provided application arguments: " + ex.getMessage())
+				new FatalErrorDialog("{name} was unable to parse the provided application arguments: " + ex.getMessage())
 					.open());
 			throw ex;
 		}
@@ -174,42 +177,38 @@ public class Launcher
 
 		try
 		{
-			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
+			log.info("{name} Launcher version {}", LauncherProperties.getVersion());
 
-			final List<String> jvmProps = new ArrayList<>();
+			final Map<String, String> jvmProps = new LinkedHashMap<>();
 			if (options.has("scale"))
 			{
 				// On Vista+ this calls SetProcessDPIAware(). Since the RuneLite.exe manifest is DPI unaware
 				// Windows will scale the application if this isn't called. Thus the default scaling mode is
 				// Windows scaling due to being DPI unaware.
 				// https://docs.microsoft.com/en-us/windows/win32/hidpi/high-dpi-desktop-application-development-on-windows
-				jvmProps.add("-Dsun.java2d.dpiaware=true");
+				jvmProps.put("sun.java2d.dpiaware", "true");
 				// This sets the Java 2D scaling factor, overriding the default behavior of detecting the scale via
 				// GetDpiForMonitor.
-				jvmProps.add("-Dsun.java2d.uiScale=" + options.valueOf("scale"));
+				jvmProps.put("sun.java2d.uiScale", String.valueOf(options.valueOf("scale")));
 			}
 
 			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
-			jvmProps.addAll(hardwareAccelerationMode.toParams(OS.getOs()));
-
-			// Always use IPv4 over IPv6
-			jvmProps.add("-Djava.net.preferIPv4Stack=true");
-			jvmProps.add("-Djava.net.preferIPv4Addresses=true");
+			jvmProps.putAll(hardwareAccelerationMode.toParams(OS.getOs()));
 
 			// As of JDK-8243269 (11.0.8) and JDK-8235363 (14), AWT makes macOS dark mode support opt-in so interfaces
 			// with hardcoded foreground/background colours don't get broken by system settings. Considering the native
 			// Aqua we draw consists a window border and an about box, it's safe to say we can opt in.
 			if (OS.getOs() == OS.OSType.MacOS)
 			{
-				jvmProps.add("-Dapple.awt.application.appearance=system");
+				jvmProps.put("apple.awt.application.appearance", "system");
 			}
 
 			// Stream launcher version
-			jvmProps.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
+			jvmProps.put(LauncherProperties.getVersionKey(), LauncherProperties.getVersion());
 
 			if (insecureSkipTlsVerification)
 			{
-				jvmProps.add("-Drunelite.insecure-skip-tls-verification=true");
+				jvmProps.put("runelite.insecure-skip-tls-verification", "true");
 			}
 
 			if (OS.getOs() == OS.OSType.Windows && !options.has("use-jre-truststore"))
@@ -217,7 +216,7 @@ public class Launcher
 				// Use the Windows Trusted Root Certificate Authorities instead of the bundled cacerts.
 				// Corporations, schools, antivirus, and malware commonly install root certificates onto
 				// machines for security or other reasons that are not present in the JRE certificate store.
-				jvmProps.add("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
+				jvmProps.put("javax.net.ssl.trustStoreType", "Windows-ROOT");
 			}
 
 			// java2d properties have to be set prior to the graphics environment startup
@@ -245,7 +244,12 @@ public class Launcher
 			// Print out system info
 			if (log.isDebugEnabled())
 			{
+				final RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
+
 				log.debug("Command line arguments: {}", String.join(" ", args));
+				// This includes arguments from _JAVA_OPTIONS, which are parsed after command line flags and applied to
+				// the global VM args
+				log.debug("Java VM arguments: {}", String.join(" ", runtime.getInputArguments()));
 				log.debug("Java Environment:");
 				final Properties p = System.getProperties();
 				final Enumeration<Object> keys = p.keys();
@@ -295,19 +299,19 @@ public class Launcher
 			if (launcherTooOld || (nojvm && jvmTooOld))
 			{
 				SwingUtilities.invokeLater(() ->
-					new FatalErrorDialog("Your launcher is to old to start RuneLite. Please download and install a more " +
-						"recent one from RuneLite.net.")
-						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+					new FatalErrorDialog("Your launcher is to old to start {name}. Please download and install a more " +
+						"recent one from " + LauncherProperties.getWebsiteLink() + ".")
+						.addButton(LauncherProperties.getWebsiteLink(), () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
 						.open());
 				return;
 			}
 			if (jvmTooOld)
 			{
 				SwingUtilities.invokeLater(() ->
-					new FatalErrorDialog("Your Java installation is too old. RuneLite now requires Java " +
-						bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from RuneLite.net," +
+					new FatalErrorDialog("Your Java installation is too old. {name} now requires Java " +
+						bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from {website}," +
 						" or install a newer version of Java.")
-						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+						.addButton(LauncherProperties.getWebsiteLink(), () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
 						.open());
 				return;
 			}
@@ -417,7 +421,7 @@ public class Launcher
 			if (!postInstall)
 			{
 				SwingUtilities.invokeLater(() ->
-					new FatalErrorDialog("RuneLite has encountered an unexpected error during startup.")
+					new FatalErrorDialog("{name} has encountered an unexpected error during startup.")
 						.open());
 			}
 		}
@@ -433,12 +437,11 @@ public class Launcher
 		}
 	}
 
-	private static void setJvmParams(final Collection<String> params)
+	private static void setJvmParams(final Map<String, String> params)
 	{
-		for (String param : params)
+		for (Map.Entry<String, String> entry : params.entrySet())
 		{
-			final String[] split = param.replace("-D", "").split("=");
-			System.setProperty(split[0], split[1]);
+			System.setProperty(entry.getKey(), entry.getValue());
 		}
 	}
 

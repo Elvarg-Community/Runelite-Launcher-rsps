@@ -41,6 +41,10 @@ public class LauncherProperties
 	private static final String BOOTSTRAPSIG = "runelite.bootstrapsig";
 	private static final String MAIN = "runelite.main";
 
+	private static final String WEBSITE_LINK = "runelite.website";
+
+	private static final String APP_NAME = "runelite.name";
+
 	private static final Properties properties = new Properties();
 
 	static
@@ -75,6 +79,16 @@ public class LauncherProperties
 	public static String getTroubleshootingLink()
 	{
 		return properties.getProperty(TROUBLESHOOTING_LINK);
+	}
+
+	public static String getWebsiteLink()
+	{
+		return properties.getProperty(WEBSITE_LINK);
+	}
+
+	public static String getApplicationName()
+	{
+		return properties.getProperty(APP_NAME);
 	}
 
 	public static String getDNSChangeLink()

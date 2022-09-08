@@ -29,9 +29,9 @@
 
 	<groupId>net.runelite</groupId>
 	<artifactId>launcher</artifactId>
-	<version>2.4.4-SNAPSHOT</version>
-	<name>RuneLite Launcher</name>
-	<description>Launcher for RuneLite client</description>
+	<version>1.0</version>
+	<name>Elvarg Launcher</name>
+	<description>Launcher for Elvarg client</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -152,7 +152,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>RuneLite</finalName>
+		<finalName>Elvarg</finalName>
 
 		<resources>
 			<resource>
