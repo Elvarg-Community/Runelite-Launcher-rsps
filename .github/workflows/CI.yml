@@ -7,6 +7,8 @@ jobs:
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: cache
       uses: actions/cache@v2
       with:
@@ -21,23 +23,46 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
-    - name: build
+    - uses: ilammy/msvc-dev-cmd@v1 # for nmake
+      with:
+        arch: x64
+    - name: build detours x64
+      shell: cmd
+      run: |
+        cd detours/src
+        nmake
+    - uses: ilammy/msvc-dev-cmd@v1 # for nmake
+      with:
+        arch: x86
+    - name: build detours x86
+      shell: cmd
+      run: |
+        cd detours/src
+        nmake
+    - name: build dll x64
+      shell: cmd
+      run: |
+        cmake -S native -B native/build64 -A x64
+        cmake --build native/build64 --config Release
+    - name: build dll x86
+      shell: cmd
+      run: |
+        cmake -S native -B native/build32 -A Win32
+        cmake --build native/build32 --config Release
+    - name: build launcher
       run: mvn verify -B
-    - name: x64
+    - name: x64 installer
       shell: bash
       run: ./build-win64.sh
-    - name: x86
+    - name: x86 installer
       shell: bash
       run: ./build-win32.sh
     - uses: actions/upload-artifact@v3
       with:
-        name: windows-amd64
-        path: ElvargSetup64.exe
-        if-no-files-found: error
-    - uses: actions/upload-artifact@v3
-      with:
-        name: windows-x86
-        path: ElvargSetup32.exe
+        name: windows
+        path: |
+          ElvargSetup64.exe
+          ElvargSetup32.exe
         if-no-files-found: error
   linux:
     runs-on: ubuntu-20.04
@@ -55,15 +80,11 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: 11
-        distribution: temurin   
+        distribution: temurin
     - name: build
       run: mvn verify -B
-    - name: cmod linux-x64
-      run: chmod +x ./build-linux-x86_64.sh
     - name: linux-x64
       run: ./build-linux-x86_64.sh
-    - name: cmod linux-x64_64
-      run: chmod +x ./build-linux-aarch64.sh
     - name: linux-aarch64
       run: ./build-linux-aarch64.sh
     - uses: actions/upload-artifact@v3
@@ -73,13 +94,10 @@ jobs:
         if-no-files-found: error
     - uses: actions/upload-artifact@v3
       with:
-        name: linux-x64
-        path: native-linux-x86_64/Elvarg.AppImage
-        if-no-files-found: error
-    - uses: actions/upload-artifact@v3
-      with:
-        name: linux-aarch64
-        path: native-linux-aarch64/Elvarg-aarch64.AppImage
+        name: linux
+        path: |
+          native-linux-x86_64/Elvarg.AppImage
+          native-linux-aarch64/Elvarg-aarch64.AppImage
         if-no-files-found: error
   macos:
     runs-on: macos-11
@@ -108,21 +126,14 @@ jobs:
         ln -s cli.js create-dmg
         chmod +x create-dmg
     - run: echo create-dmg >> $GITHUB_PATH
-    - name: cmod macos-x64
-      run: chmod +x ./build-osx-x64.sh
     - name: macos-x64
       run: ./build-osx-x64.sh
-    - name: cmod macos-aarch64
-      run: chmod +x ./build-osx-aarch64.sh
     - name: macos-aarch64
       run: ./build-osx-aarch64.sh
     - uses: actions/upload-artifact@v3
       with:
-        name: macos-x64
-        path: native-osx/Elvarg-x64.dmg
-        if-no-files-found: error
-    - uses: actions/upload-artifact@v3
-      with:
-        name: macos-aarch64
-        path: native-osx-aarch64/Elvarg-aarch64.dmg
+        name: macos
+        path: |
+          native-osx/Elvarg-x64.dmg
+          native-osx-aarch64/Elvarg-aarch64.dmg
         if-no-files-found: error
