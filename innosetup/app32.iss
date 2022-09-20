@@ -31,7 +31,7 @@ Source: "${basedir}\left.bmp"; DestDir: "{app}"
 Source: "${basedir}\app_small.bmp"; DestDir: "{app}"
 Source: "${basedir}\native-win32\Elvarg.exe"; DestDir: "{app}"
 Source: "${basedir}\native-win32\Elvarg.jar"; DestDir: "{app}"
-Source: "${basedir}\native\launcher_x86.dll"; DestDir: "{app}"
+Source: "${basedir}\native\build32\Release\launcher_x86.dll"; DestDir: "{app}"
 Source: "${basedir}\native-win32\config.json"; DestDir: "{app}"
 Source: "${basedir}\native-win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 
@@ -46,7 +46,12 @@ Filename: "{app}\Elvarg.exe"; Description: "&Open Elvarg"; Flags: postinstall sk
 
 [InstallDelete]
 ; Delete the old jvm so it doesn't try to load old stuff with the new vm and crash
-Type: filesandordirs; Name: "{app}"
+Type: filesandordirs; Name: "{app}\jre"
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{%USERPROFILE}\.elvarg\repository2"
+Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository2"
+; includes install_id, settings, etc
+Type: filesandordirs; Name: "{app}"
+
+[Code]
+#include "upgrade.pas"

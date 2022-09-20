@@ -52,4 +52,6 @@ public class Bootstrap
 	private Map<String, String> launcherWindowsEnv;
 	private Map<String, String> launcherMacEnv;
 	private Map<String, String> launcherLinuxEnv;
+
+	private Update[] updates;
 }
