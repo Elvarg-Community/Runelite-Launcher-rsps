@@ -76,7 +76,8 @@ class JvmLauncher
 		List<File> results,
 		Collection<String> clientArgs,
 		Map<String, String> jvmProps,
-		List<String> jvmArgs) throws IOException
+		List<String> jvmArgs,
+		String type) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
 		for (File f : results)
@@ -116,10 +117,11 @@ class JvmLauncher
 		}
 		arguments.addAll(jvmArgs);
 
-		arguments.add(LauncherProperties.getMain());
+		arguments.add(Launcher.clientTypes.get(type).getMain());
 		arguments.addAll(clientArgs);
 
 		logger.info("Running {}", arguments);
+		Launcher.close();
 
 		ProcessBuilder builder = new ProcessBuilder(arguments.toArray(new String[0]));
 		builder.redirectErrorStream(true);
@@ -135,6 +137,7 @@ class JvmLauncher
 				System.out.println(line);
 			}
 		}
+
 	}
 
 	private static String[] getJvmArguments(Bootstrap bootstrap)

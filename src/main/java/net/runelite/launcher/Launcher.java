@@ -82,6 +82,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,15 +92,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionException;
@@ -108,9 +112,12 @@ import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Artifact;
 import net.runelite.launcher.beans.Bootstrap;
+import net.runelite.launcher.beans.ClientType;
 import net.runelite.launcher.beans.Diff;
 import net.runelite.launcher.beans.Platform;
 import net.runelite.launcher.beans.Update;
+import net.runelite.launcher.mutli.FontManager;
+import net.runelite.launcher.mutli.SplashScreenMultipleOptions;
 import org.slf4j.LoggerFactory;
 
 @Slf4j
@@ -118,11 +125,43 @@ public class Launcher
 {
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".elvarg");
 	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
-	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
+
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
 	private static final String LAUNCHER_EXECUTABLE_NAME = "Elvarg.exe";
 	private static final String LAUNCHER_SETTINGS = "settings.json";
+
+	static HashMap<String, ClientType> clientTypes = new HashMap<>();
+
+
+	public static boolean displayMultipleOptions = false;
+
+	public static void retrieveClientTypes()
+	{
+
+		try
+		{
+			ClientType[] types = getClientManifest();
+			for (ClientType type : types)
+			{
+				clientTypes.put(type.getName(), type);
+			}
+		}
+		catch (Exception ex)
+		{
+			log.error("error fetching client types", ex);
+			SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("No Clients Found", new Exception("No Clients Found")));
+		}
+		if (clientTypes.size() == 0)
+		{
+			log.error("No Clients Found");
+			SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("No Clients Found", new Exception("No Clients Found")));
+		}
+		else
+		{
+			displayMultipleOptions = clientTypes.size() != 1;
+		}
+	}
 
 	public static void main(String[] args)
 	{
@@ -194,6 +233,9 @@ public class Launcher
 			logger.setLevel(Level.DEBUG);
 		}
 
+		retrieveClientTypes();
+
+
 		initDll();
 
 		// RTSS triggers off of the CreateWindow event, so this needs to be in place early, prior to splash screen
@@ -202,6 +244,7 @@ public class Launcher
 		try
 		{
 			log.info(LauncherProperties.getApplicationName() + " Launcher version {}", LauncherProperties.getVersion());
+			log.info("Clients Showing: {}, Display multi Options {}", clientTypes.size(), displayMultipleOptions);
 
 			final Map<String, String> jvmProps = new LinkedHashMap<>();
 			if (options.has("scale"))
@@ -256,159 +299,39 @@ public class Launcher
 				setupInsecureTrustManager();
 			}
 
-			if (postInstall)
+
+			if (displayMultipleOptions)
 			{
-				postInstall(jvmParams);
-				return;
-			}
+				FontManager.init();
 
-			SplashScreen.init();
-			SplashScreen.stage(0, "Preparing", "Setting up environment");
 
-			// Print out system info
-			if (log.isDebugEnabled())
-			{
-				final RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
+				List<JButton> buttons = new ArrayList<>();
 
-				log.debug("Command line arguments: {}", String.join(" ", args));
-				// This includes arguments from _JAVA_OPTIONS, which are parsed after command line flags and applied to
-				// the global VM args
-				log.debug("Java VM arguments: {}", String.join(" ", runtime.getInputArguments()));
-				log.debug("Java Environment:");
-				final Properties p = System.getProperties();
-				final Enumeration<Object> keys = p.keys();
-
-				while (keys.hasMoreElements())
+				for (Map.Entry<String, ClientType> type : clientTypes.entrySet())
 				{
-					final String key = (String) keys.nextElement();
-					final String value = (String) p.get(key);
-					log.debug("  {}: {}", key, value);
-				}
-			}
-
-			SplashScreen.stage(.05, null, "Downloading bootstrap");
-			Bootstrap bootstrap;
-			try
-			{
-				bootstrap = getBootstrap();
-			}
-			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
-			{
-				log.error("error fetching bootstrap", ex);
-				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the bootstrap", ex));
-				return;
-			}
-
-			SplashScreen.stage(.07, null, "Checking for updates");
-
-			update(bootstrap, options, args);
-
-			SplashScreen.stage(.10, null, "Tidying the cache");
-
-			if (jvmOutdated(bootstrap, options))
-			{
-				// jvmOutdated opens an error dialog
-				return;
-			}
-
-			// update packr vmargs. The only extra vmargs we need to write to disk are the ones which cannot be set
-			// at runtime, which currently is just the vm errorfile.
-			PackrConfig.updateLauncherArgs(bootstrap, jvmParams);
-
-			REPO_DIR.mkdirs();
-
-			// Determine artifacts for this OS
-			List<Artifact> artifacts = Arrays.stream(bootstrap.getArtifacts())
-				.filter(a ->
-				{
-					if (a.getPlatform() == null)
+					JButton button = SplashScreenMultipleOptions.addButton(toTitleCase(type.getKey()), type.getValue().getTooltip());
+					button.addActionListener(e ->
 					{
-						return true;
-					}
-
-					final String os = System.getProperty("os.name");
-					final String arch = System.getProperty("os.arch");
-					for (Platform platform : a.getPlatform())
-					{
-						if (platform.getName() == null)
-						{
-							continue;
-						}
-
-						OS.OSType platformOs = OS.parseOs(platform.getName());
-						if ((platformOs == OS.OSType.Other ? platform.getName().equals(os) : platformOs == OS.getOs())
-							&& (platform.getArch() == null || platform.getArch().equals(arch)))
-						{
-							return true;
-						}
-					}
-
-					return false;
-				})
-				.collect(Collectors.toList());
-
-			// Clean out old artifacts from the repository
-			clean(artifacts);
-
-			try
-			{
-				download(artifacts, nodiff);
-			}
-			catch (IOException ex)
-			{
-				log.error("unable to download artifacts", ex);
-				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the client", ex));
-				return;
-			}
-
-			SplashScreen.stage(.80, null, "Verifying");
-			try
-			{
-				verifyJarHashes(artifacts);
-			}
-			catch (VerificationException ex)
-			{
-				log.error("Unable to verify artifacts", ex);
-				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("verifying downloaded files", ex));
-				return;
-			}
-
-			final Collection<String> clientArgs = getClientArgs(options);
-
-			if (isDebug)
-			{
-				clientArgs.add("--debug");
-			}
-
-			SplashScreen.stage(.90, "Starting the client", "");
-
-			List<File> classpath = artifacts.stream()
-				.map(dep -> new File(REPO_DIR, dep.getName()))
-				.collect(Collectors.toList());
-
-			// we use runelite.launcher.nojvm to signal --nojvm from packr
-			if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
-			{
-				try
-				{
-					ReflectionLauncher.launch(classpath, clientArgs);
+						Runnable task = () -> launch(toTitleCase(type.getKey()), args, jvmParams, jvmProps, options, isDebug, nodiff, postInstall);
+						Thread thread = new Thread(task);
+						thread.start();
+					});
+					buttons.add(button);
 				}
-				catch (MalformedURLException ex)
-				{
-					log.error("unable to launch client", ex);
-				}
+
+				SplashScreenMultipleOptions.init(buttons);
+				SplashScreenMultipleOptions.barMessage(null);
+				SplashScreenMultipleOptions.message(null);
+
 			}
 			else
 			{
-				try
-				{
-					JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);
-				}
-				catch (IOException ex)
-				{
-					log.error("unable to launch client", ex);
-				}
+				SplashScreen.init();
+				Runnable task = () -> launch(toTitleCase(clientTypes.entrySet().stream().findAny().get().getValue().getName()), args, jvmParams, jvmProps, options, isDebug, nodiff, postInstall);
+				Thread thread = new Thread(task);
+				thread.start();
 			}
+
 		}
 		catch (Exception e)
 		{
@@ -428,7 +351,213 @@ public class Launcher
 		}
 		finally
 		{
-			SplashScreen.stop();
+
+		}
+	}
+
+
+	public static String toTitleCase(String givenString)
+	{
+		String[] arr = givenString.split(" ");
+		StringBuffer sb = new StringBuffer();
+
+		for (int i = 0; i < arr.length; i++)
+		{
+			sb.append(Character.toUpperCase(arr[i].charAt(0)))
+				.append(arr[i].substring(1)).append(" ");
+		}
+		return sb.toString().trim();
+	}
+
+	public static void launch(String type, String[] args, List<String> jvmParams, Map<String, String> jvmProps, OptionSet options, boolean isDebug, boolean nodiff, boolean postInstall)
+	{
+		if (postInstall)
+		{
+			postInstall(jvmParams, type);
+			return;
+		}
+		stage(0, "Preparing", "Setting up environment");
+
+		// Print out system info
+		if (log.isDebugEnabled())
+		{
+			final RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
+
+			log.debug("Command line arguments: {}", String.join(" ", args));
+			// This includes arguments from _JAVA_OPTIONS, which are parsed after command line flags and applied to
+			// the global VM args
+			log.debug("Java VM arguments: {}", String.join(" ", runtime.getInputArguments()));
+			log.debug("Java Environment:");
+			final Properties p = System.getProperties();
+			final Enumeration<Object> keys = p.keys();
+
+			while (keys.hasMoreElements())
+			{
+				final String key = (String) keys.nextElement();
+				final String value = (String) p.get(key);
+				log.debug("  {}: {}", key, value);
+			}
+		}
+
+		stage(.05, null, "Downloading bootstrap");
+		Bootstrap bootstrap;
+		try
+		{
+			bootstrap = getBootstrap(type);
+		}
+		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException |
+			   NoSuchAlgorithmException ex)
+		{
+			log.error("error fetching bootstrap: " + type, ex);
+			SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the bootstrap: " + type, ex));
+			return;
+		}
+
+		stage(.07, null, "Checking for updates");
+
+		update(bootstrap, options, args);
+
+		stage(.10, null, "Tidying the cache");
+
+		boolean launcherTooOld = bootstrap.getRequiredLauncherVersion() != null &&
+			compareVersion(bootstrap.getRequiredLauncherVersion(), LauncherProperties.getVersion()) > 0;
+
+		boolean jvmTooOld = false;
+		try
+		{
+			if (bootstrap.getRequiredJVMVersion() != null)
+			{
+				jvmTooOld = Runtime.Version.parse(bootstrap.getRequiredJVMVersion())
+					.compareTo(Runtime.version()) > 0;
+			}
+		}
+		catch (IllegalArgumentException e)
+		{
+			log.warn("Unable to parse bootstrap version: " + type, e);
+		}
+
+		boolean nojvm = "true".equals(System.getProperty("runelite.launcher.nojvm"));
+
+		if (launcherTooOld || (nojvm && jvmTooOld))
+		{
+			SwingUtilities.invokeLater(() ->
+				new FatalErrorDialog("Your launcher is too old to start {name}. Please download and install a more " +
+					"recent one from " + LauncherProperties.getWebsiteLink() + ".")
+					.addButton(LauncherProperties.getWebsiteLink(), () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+					.open());
+			return;
+		}
+		if (jvmTooOld)
+		{
+			SwingUtilities.invokeLater(() ->
+				new FatalErrorDialog("Your Java installation is too old. {name} now requires Java " +
+					bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from {website}," +
+					" or install a newer version of Java.")
+					.addButton(LauncherProperties.getWebsiteLink(), () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+					.open());
+			return;
+		}
+
+		// update packr vmargs. The only extra vmargs we need to write to disk are the ones which cannot be set
+		// at runtime, which currently is just the vm errorfile.
+
+		PackrConfig.updateLauncherArgs(bootstrap, jvmParams);
+
+		File location = new File(RUNELITE_DIR, "repository_" + type);
+
+		location.mkdirs();
+
+		// Determine artifacts for this OS
+		List<Artifact> artifacts = Arrays.stream(bootstrap.getArtifacts())
+			.filter(a ->
+			{
+				if (a.getPlatform() == null)
+				{
+					return true;
+				}
+
+				final String os = System.getProperty("os.name");
+				final String arch = System.getProperty("os.arch");
+				for (Platform platform : a.getPlatform())
+				{
+					if (platform.getName() == null)
+					{
+						continue;
+					}
+
+					OS.OSType platformOs = OS.parseOs(platform.getName());
+					if ((platformOs == OS.OSType.Other ? platform.getName().equals(os) : platformOs == OS.getOs())
+						&& (platform.getArch() == null || platform.getArch().equals(arch)))
+					{
+						return true;
+					}
+				}
+
+				return false;
+			})
+			.collect(Collectors.toList());
+
+		// Clean out old artifacts from the repository
+		clean(artifacts, type);
+
+		try
+		{
+			download(artifacts, nodiff, type);
+		}
+		catch (IOException ex)
+		{
+			log.error("unable to download artifacts: " + type, ex);
+			SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the client: " + type, ex));
+			return;
+		}
+
+		stage(.80, null, "Verifying");
+		try
+		{
+			verifyJarHashes(artifacts, type);
+		}
+		catch (VerificationException ex)
+		{
+			log.error("Unable to verify artifacts: " + type, ex);
+			SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("verifying downloaded files: " + type, ex));
+			return;
+		}
+
+		final Collection<String> clientArgs = getClientArgs(options);
+
+		if (isDebug)
+		{
+			clientArgs.add("--debug");
+		}
+
+		stage(.90, "Starting the client", "");
+
+		List<File> classpath = artifacts.stream()
+			.map(dep -> new File(location, dep.getName()))
+			.collect(Collectors.toList());
+
+		// packr doesn't let us specify command line arguments
+		if (nojvm || options.has("nojvm"))
+		{
+			try
+			{
+				ReflectionLauncher.launch(classpath, clientArgs, type);
+			}
+			catch (MalformedURLException ex)
+			{
+				log.error("unable to launch client: " + type, ex);
+			}
+		}
+		else
+		{
+			try
+			{
+				JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams, type);
+			}
+			catch (IOException ex)
+			{
+				log.error("unable to launch client: " + type, ex);
+			}
 		}
 	}
 
@@ -440,10 +569,10 @@ public class Launcher
 		}
 	}
 
-	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
+	private static Bootstrap getBootstrap(String type) throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
-		URL u = new URL(LauncherProperties.getBootstrap());
-		URL signatureUrl = new URL(LauncherProperties.getBootstrapSig());
+		URL u = new URL(clientTypes.get(type).getBootstrap());
+		URL signatureUrl = new URL(clientTypes.get(type).getBootstrapsig());
 
 		URLConnection conn = u.openConnection();
 		URLConnection signatureConn = signatureUrl.openConnection();
@@ -452,7 +581,7 @@ public class Launcher
 		signatureConn.setRequestProperty("User-Agent", USER_AGENT);
 
 		try (InputStream i = conn.getInputStream();
-			InputStream signatureIn = signatureConn.getInputStream())
+			 InputStream signatureIn = signatureConn.getInputStream())
 		{
 			byte[] bytes = ByteStreams.toByteArray(i);
 			byte[] signature = ByteStreams.toByteArray(signatureIn);
@@ -464,11 +593,30 @@ public class Launcher
 
 			if (!s.verify(signature))
 			{
-				throw new VerificationException("Unable to verify bootstrap signature");
+				throw new VerificationException("Unable to verify bootstrap signature: " + type);
 			}
 
 			Gson g = new Gson();
 			return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);
+		}
+
+	}
+
+	private static ClientType[] getClientManifest() throws IOException
+	{
+		URL u = new URL(LauncherProperties.getRuneliteTypeManifest());
+
+		URLConnection conn = u.openConnection();
+
+
+		conn.setRequestProperty("User-Agent", USER_AGENT);
+
+		try (InputStream i = conn.getInputStream())
+		{
+			byte[] bytes = ByteStreams.toByteArray(i);
+
+			Gson g = new Gson();
+			return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), ClientType[].class);
 		}
 	}
 
@@ -654,7 +802,7 @@ public class Launcher
 				try
 				{
 					download(newestUpdate.getUrl(), newestUpdate.getHash(), (completed) ->
-						SplashScreen.stage(.07, 1., null, name, completed, size, true),
+							stage(.07, 1., null, name, completed, size, true),
 						fout);
 				}
 				catch (VerificationException e)
@@ -727,8 +875,9 @@ public class Launcher
 		return args;
 	}
 
-	private static void download(List<Artifact> artifacts, boolean nodiff) throws IOException
+	private static void download(List<Artifact> artifacts, boolean nodiff, String type) throws IOException
 	{
+		File location = new File(RUNELITE_DIR, "repository_" + type);
 		List<Artifact> toDownload = new ArrayList<>(artifacts.size());
 		Map<Artifact, Diff> diffs = new HashMap<>();
 		int totalDownloadBytes = 0;
@@ -742,7 +891,7 @@ public class Launcher
 
 		for (Artifact artifact : artifacts)
 		{
-			File dest = new File(REPO_DIR, artifact.getName());
+			File dest = new File(location, artifact.getName());
 
 			String hash;
 			try
@@ -767,7 +916,7 @@ public class Launcher
 			{
 				for (Diff diff : artifact.getDiffs())
 				{
-					File old = new File(REPO_DIR, diff.getFrom());
+					File old = new File(location, diff.getFrom());
 
 					String oldhash;
 					try
@@ -794,11 +943,11 @@ public class Launcher
 
 		final double START_PROGRESS = .15;
 		int downloaded = 0;
-		SplashScreen.stage(START_PROGRESS, "Downloading", "");
+		stage(START_PROGRESS, "Downloading", "");
 
 		for (Artifact artifact : toDownload)
 		{
-			File dest = new File(REPO_DIR, artifact.getName());
+			File dest = new File(location, artifact.getName());
 			final int total = downloaded;
 
 			// Check if there is a diff we can download instead
@@ -812,14 +961,14 @@ public class Launcher
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
 					final int totalBytes = totalDownloadBytes;
 					download(diff.getPath(), diff.getHash(), (completed) ->
-						SplashScreen.stage(START_PROGRESS, .80, null, diff.getName(), total + completed, totalBytes, true),
+							stage(START_PROGRESS, .80, null, diff.getName(), total + completed, totalBytes, true),
 						out);
 					downloaded += diff.getSize();
 
-					File old = new File(REPO_DIR, diff.getFrom());
+					File old = new File(location, diff.getFrom());
 					HashCode hash;
 					try (InputStream patchStream = new GZIPInputStream(new ByteArrayInputStream(out.toByteArray()));
-						HashingOutputStream fout = new HashingOutputStream(Hashing.sha256(), Files.newOutputStream(dest.toPath())))
+						 HashingOutputStream fout = new HashingOutputStream(Hashing.sha256(), Files.newOutputStream(dest.toPath())))
 					{
 						new FileByFileV1DeltaApplier().applyDelta(old, patchStream, fout);
 						hash = fout.hash();
@@ -850,7 +999,7 @@ public class Launcher
 			{
 				final int totalBytes = totalDownloadBytes;
 				download(artifact.getPath(), artifact.getHash(), (completed) ->
-					SplashScreen.stage(START_PROGRESS, .80, null, artifact.getName(), total + completed, totalBytes, true),
+						stage(START_PROGRESS, .80, null, artifact.getName(), total + completed, totalBytes, true),
 					fout);
 				downloaded += artifact.getSize();
 			}
@@ -861,9 +1010,10 @@ public class Launcher
 		}
 	}
 
-	private static void clean(List<Artifact> artifacts)
+	private static void clean(List<Artifact> artifacts, String type)
 	{
-		File[] existingFiles = REPO_DIR.listFiles();
+		File location = new File(RUNELITE_DIR, "repository_" + type);
+		File[] existingFiles = location.listFiles();
 
 		if (existingFiles == null)
 		{
@@ -900,15 +1050,16 @@ public class Launcher
 		}
 	}
 
-	private static void verifyJarHashes(List<Artifact> artifacts) throws VerificationException
+	private static void verifyJarHashes(List<Artifact> artifacts, String type) throws VerificationException
 	{
+		File location = new File(RUNELITE_DIR, "repository_" + type);
 		for (Artifact artifact : artifacts)
 		{
 			String expectedHash = artifact.getHash();
 			String fileHash;
 			try
 			{
-				fileHash = hash(new File(REPO_DIR, artifact.getName()));
+				fileHash = hash(new File(location, artifact.getName()));
 			}
 			catch (IOException e)
 			{
@@ -1057,14 +1208,15 @@ public class Launcher
 		HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 	}
 
-	private static void postInstall(List<String> jvmParams)
+	private static void postInstall(List<String> jvmParams, String type)
 	{
 		Bootstrap bootstrap;
 		try
 		{
-			bootstrap = getBootstrap();
+			bootstrap = getBootstrap(type);
 		}
-		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
+		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException |
+			   NoSuchAlgorithmException ex)
 		{
 			log.error("error fetching bootstrap", ex);
 			return;
@@ -1175,8 +1327,8 @@ public class Launcher
 			var gson = new Gson();
 
 			try (FileOutputStream fout = new FileOutputStream(tmpFile);
-				FileChannel channel = fout.getChannel();
-				PrintWriter writer = new PrintWriter(fout))
+				 FileChannel channel = fout.getChannel();
+				 PrintWriter writer = new PrintWriter(fout))
 			{
 				channel.lock();
 				writer.write(gson.toJson(settings));
@@ -1198,6 +1350,44 @@ public class Launcher
 		{
 			log.warn("error saving launcher settings!", e);
 			settingsFile.delete();
+		}
+	}
+
+	public static void stage(double startProgress, double endProgress, @Nullable String actionText, String subActionText,
+							 int done, int total, boolean mib)
+	{
+		if (displayMultipleOptions)
+		{
+			SplashScreenMultipleOptions.stage(startProgress, endProgress, subActionText, done, total, mib);
+		}
+		else
+		{
+			SplashScreen.stage(startProgress, endProgress,
+				actionText, subActionText, done, total, mib);
+		}
+	}
+
+	public static void stage(double overallProgress, @Nullable String actionText, String subActionText)
+	{
+		if (displayMultipleOptions)
+		{
+			SplashScreenMultipleOptions.stage(overallProgress, subActionText);
+		}
+		else
+		{
+			SplashScreen.stage(overallProgress, actionText, subActionText);
+		}
+	}
+
+	public static void close()
+	{
+		if (displayMultipleOptions)
+		{
+			SplashScreenMultipleOptions.close();
+		}
+		else
+		{
+			SplashScreen.stop();
 		}
 	}
 

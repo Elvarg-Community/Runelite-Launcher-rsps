@@ -22,56 +22,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.launcher;
+package net.runelite.launcher.beans;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Collection;
-import java.util.List;
-import javax.swing.UIManager;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
-@Slf4j
-class ReflectionLauncher
+@Data
+public class ClientType
 {
-	static void launch(List<File> results, Collection<String> clientArgs, String type) throws MalformedURLException
-	{
-		URL[] jarUrls = new URL[results.size()];
-		int i = 0;
-		for (File file : results)
-		{
-			log.debug("Adding jar: {}", file);
-			jarUrls[i++] = file.toURI().toURL();
-		}
-
-		ClassLoader parent = ClassLoader.getPlatformClassLoader();
-		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
-
-		UIManager.put("ClassLoader", loader); // hack for Substance
-		Thread thread = new Thread()
-		{
-			public void run()
-			{
-				try
-				{
-					Class<?> mainClass = loader.loadClass(Launcher.clientTypes.get(type).getMain());
-
-					Method main = mainClass.getMethod("main", String[].class);
-					main.invoke(null, (Object) clientArgs.toArray(new String[0]));
-				}
-				catch (Exception ex)
-				{
-					log.error("Unable to launch client: " + type, ex);
-				}
-			}
-		};
-		thread.setName("RuneLite");
-		thread.start();
-
-		Launcher.close();
-
-	}
+	private String name;
+	private String main;
+	private String bootstrap;
+	private String bootstrapsig;
+	private String tooltip;
 }

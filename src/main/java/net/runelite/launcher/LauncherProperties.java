@@ -37,9 +37,7 @@ public class LauncherProperties
 	private static final String TROUBLESHOOTING_LINK = "runelite.wiki.troubleshooting.link";
 	private static final String DNS_CHANGE_LINK = "runelite.dnschange.link";
 	private static final String DOWNLOAD_LINK = "runelite.download.link";
-	private static final String BOOTSTRAP = "runelite.bootstrap";
-	private static final String BOOTSTRAPSIG = "runelite.bootstrapsig";
-	private static final String MAIN = "runelite.main";
+	private static final String RUNELITE_TYPE_MANIFEST = "runelite.type.manifest";
 
 	private static final String WEBSITE_LINK = "runelite.website";
 
@@ -101,18 +99,9 @@ public class LauncherProperties
 		return properties.getProperty(DOWNLOAD_LINK);
 	}
 
-	public static String getBootstrap()
+	public static String getRuneliteTypeManifest()
 	{
-		return properties.getProperty(BOOTSTRAP);
+		return properties.getProperty(RUNELITE_TYPE_MANIFEST);
 	}
 
-	public static String getBootstrapSig()
-	{
-		return properties.getProperty(BOOTSTRAPSIG);
-	}
-
-	public static String getMain()
-	{
-		return properties.getProperty(MAIN);
-	}
 }

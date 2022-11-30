@@ -38,6 +38,7 @@ import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.imageio.ImageIO;
 import javax.net.ssl.SSLHandshakeException;
@@ -67,7 +68,7 @@ public class FatalErrorDialog extends JDialog
 
 	public FatalErrorDialog(String message)
 	{
-		String finalMessage = message.replace("{name}",LauncherProperties.getApplicationName()).replace("{link}",LauncherProperties.getWebsiteLink());
+		String finalMessage = message.replace("{name}", LauncherProperties.getApplicationName()).replace("{link}", LauncherProperties.getWebsiteLink()).replace("{types}", LauncherProperties.getRuneliteTypeManifest());
 		if (alreadyOpen.getAndSet(true))
 		{
 			throw new IllegalStateException("Fatal error during fatal error: " + finalMessage);
@@ -199,6 +200,12 @@ public class FatalErrorDialog extends JDialog
 
 	public static void showNetErrorWindow(String action, Throwable err)
 	{
+		if (Objects.equals(err.getMessage(), "No Clients Found"))
+		{
+			new FatalErrorDialog("{name} was unable to find any clients to display please contact us to get this fixed {types}")
+				.open();
+			return;
+		}
 		if (err instanceof VerificationException || err instanceof GeneralSecurityException)
 		{
 			new FatalErrorDialog("{name} was unable to verify the security of its connection to the internet while " +

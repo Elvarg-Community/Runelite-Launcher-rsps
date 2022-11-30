@@ -50,7 +50,7 @@ public class LinkBrowser
 	 */
 	public static void browse(final String url)
 	{
-		new Thread(() -> 
+		new Thread(() ->
 		{
 			if (Strings.isNullOrEmpty(url))
 			{
@@ -77,6 +77,7 @@ public class LinkBrowser
 
 	/**
 	 * Tries to open a directory in the OS native file manager.
+	 *
 	 * @param directory directory to open
 	 */
 	public static void open(final String directory)
@@ -189,6 +190,7 @@ public class LinkBrowser
 
 	/**
 	 * Open swing message box with specified message and copy data to clipboard
+	 *
 	 * @param message message to show
 	 */
 	private static void showMessageBox(final String message, final String data)
@@ -205,4 +207,48 @@ public class LinkBrowser
 			}
 		});
 	}
+
+	public static boolean openLocalFile(final File file)
+	{
+		if (file == null || !file.exists())
+		{
+			return false;
+		}
+
+		if (attemptOpenLocalFile(file))
+		{
+			log.debug("Opened log file through Desktop#edit to {}", file);
+			return true;
+		}
+
+		showMessageBox("Unable to open log file. Press 'OK' and the file path will be copied to your clipboard", file.getAbsolutePath());
+		return false;
+	}
+
+	private static boolean attemptOpenLocalFile(final File file)
+	{
+		if (!Desktop.isDesktopSupported())
+		{
+			return false;
+		}
+
+		final Desktop desktop = Desktop.getDesktop();
+
+		if (!desktop.isSupported(Desktop.Action.OPEN))
+		{
+			return false;
+		}
+
+		try
+		{
+			desktop.open(file);
+			return true;
+		}
+		catch (IOException ex)
+		{
+			log.warn("Failed to open Desktop#edit {}", file, ex);
+			return false;
+		}
+	}
+
 }
