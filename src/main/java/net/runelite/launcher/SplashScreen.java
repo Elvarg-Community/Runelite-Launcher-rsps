@@ -49,8 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SplashScreen extends JFrame implements ActionListener
 {
-	private static final Color BRAND_ORANGE = new Color(220, 138, 0);
-	private static final Color DARKER_GRAY_COLOR = new Color(30, 30, 30);
 
 	private static final int WIDTH = 200;
 	private static final int PAD = 10;
@@ -78,7 +76,7 @@ public class SplashScreen extends JFrame implements ActionListener
 		setIconImage(logo);
 		setLayout(null);
 		Container pane = getContentPane();
-		pane.setBackground(DARKER_GRAY_COLOR);
+		pane.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
 		Font font = new Font(Font.DIALOG, Font.PLAIN, 12);
 
@@ -96,8 +94,8 @@ public class SplashScreen extends JFrame implements ActionListener
 		y += action.getHeight() + PAD;
 
 		pane.add(progress);
-		progress.setForeground(BRAND_ORANGE);
-		progress.setBackground(BRAND_ORANGE.darker().darker());
+		progress.setForeground(ColorScheme.BRAND);
+		progress.setBackground(ColorScheme.BRAND.darker().darker());
 		progress.setBorder(new EmptyBorder(0, 0, 0, 0));
 		progress.setBounds(0, y, WIDTH, 14);
 		progress.setFont(font);
