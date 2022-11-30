@@ -71,13 +71,14 @@ class PackrConfig
 		catch (IOException | JsonIOException | JsonSyntaxException e)
 		{
 			log.warn("error deserializing packr vm args!", e);
-			if (config == null)
-			{
-				// this can't happen when run from the launcher, because an invalid packr config would prevent the launcher itself
-				// from starting. But could happen if the jar launcher was run separately.
-				log.warn("packr config is null!");
-				return;
-			}
+			return;
+		}
+
+		if (config == null)
+		{
+			// this can't happen when run from the launcher, because an invalid packr config would prevent the launcher itself
+			// from starting. But could happen if the jar launcher was run separately.
+			log.warn("packr config is null!");
 			return;
 		}
 
