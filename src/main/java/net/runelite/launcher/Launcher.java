@@ -594,7 +594,7 @@ public class Launcher
 			return;
 		}
 
-		if (System.getenv("RUNELITE_UPGRADE") != null)
+		if (System.getenv("ELVARG_UPGRADE") != null)
 		{
 			log.info("Skipping update {} due to launching from an upgrade", newestUpdate.getVersion());
 			return;
@@ -693,8 +693,8 @@ public class Launcher
 				}
 			}
 
-			env.put("RUNELITE_UPGRADE", "1");
-			env.put("RUNELITE_UPGRADE_PARAMS", argStr.toString());
+			env.put("ELVARG_UPGRADE", "1");
+			env.put("ELVARG_UPGRADE_PARAMS", argStr.toString());
 			pb.start();
 
 			System.exit(0);
