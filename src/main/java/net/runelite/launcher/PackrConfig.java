@@ -38,6 +38,10 @@ import java.nio.channels.FileChannel;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
@@ -46,15 +50,11 @@ import net.runelite.launcher.beans.Bootstrap;
 class PackrConfig
 {
 	// Update the packr config
-	static void updateLauncherArgs(Bootstrap bootstrap)
+	static void updateLauncherArgs(Bootstrap bootstrap, Collection<String> extraJvmArgs)
 	{
-		var os = OS.getOs();
-		if (os != OS.OSType.Windows && os != OS.OSType.MacOS)
-		{
-			return;
-		}
-
 		File configFile = new File("config.json").getAbsoluteFile();
+
+		// The AppImage mounts the packr directory on a readonly filesystem, so we can't update the vm args there
 		if (!configFile.exists() || !configFile.canWrite())
 		{
 			return;
@@ -89,16 +89,21 @@ class PackrConfig
 			return;
 		}
 
-		config.put("vmArgs", argsArr);
+		// Insert JVM arguments to config.json because some of them require restart
+		List<String> args = new ArrayList<>();
+		args.addAll(Arrays.asList(argsArr));
+		args.addAll(extraJvmArgs);
+
+		config.put("vmArgs", args);
 		config.put("env", getEnv(bootstrap));
 
 		try
 		{
-			File tmpFile = File.createTempFile("runelite", null);
+			File tmpFile = File.createTempFile(LauncherProperties.getApplicationName().toLowerCase(), null);
 
 			try (FileOutputStream fout = new FileOutputStream(tmpFile);
-				 FileChannel channel = fout.getChannel();
-				 PrintWriter writer = new PrintWriter(fout))
+				FileChannel channel = fout.getChannel();
+				PrintWriter writer = new PrintWriter(fout))
 			{
 				channel.lock();
 				writer.write(gson.toJson(config));

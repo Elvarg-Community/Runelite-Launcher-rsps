@@ -51,22 +51,27 @@ class ReflectionLauncher
 		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
 
 		UIManager.put("ClassLoader", loader); // hack for Substance
-		Thread thread = new Thread(() -> {
-			try
+		Thread thread = new Thread()
+		{
+			public void run()
 			{
-				Class<?> mainClass = loader.loadClass(Launcher.clientTypes.get(type).getMain());
+				try
+				{
+					Class<?> mainClass = loader.loadClass(Launcher.clientTypes.get(type).getMain());
 
-				Method main = mainClass.getMethod("main", String[].class);
-				main.invoke(null, (Object) clientArgs.toArray(new String[0]));
+					Method main = mainClass.getMethod("main", String[].class);
+					main.invoke(null, (Object) clientArgs.toArray(new String[0]));
+				}
+				catch (Exception ex)
+				{
+					log.error("Unable to launch client: " + type, ex);
+				}
 			}
-			catch (Exception ex)
-			{
-				log.error("Unable to launch client: " + type, ex);
-			}
-		});
+		};
 		thread.setName("RuneLite");
 		thread.start();
 
+		Launcher.close();
 
 	}
 }
