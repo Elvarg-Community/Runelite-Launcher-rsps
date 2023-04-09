@@ -37,14 +37,14 @@ Source: "${basedir}\native-win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesub
 
 [Icons]
 ; start menu
-Name: "{userprograms}\RuneLite\Elvarg"; Filename: "{app}\Elvarg.exe"
-Name: "{userprograms}\RuneLite\Elvarg (configure)"; Filename: "{app}\Elvarg.exe"; Parameters: "--configure"
-Name: "{userprograms}\RuneLite\Elvarg (safe mode)"; Filename: "{app}\Elvarg.exe"; Parameters: "--safe-mode"
-Name: "{userdesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: DesktopIcon
+Name: "{userprograms}\Elvarg\Elvarg"; Filename: "{app}\Elvarg.exe"
+Name: "{userprograms}\Elvarg\Elvarg (configure)"; Filename: "{app}\Elvarg.exe"; Parameters: "--configure"
+Name: "{userprograms}\Elvarg\Elvarg (safe mode)"; Filename: "{app}\Elvarg.exe"; Parameters: "--safe-mode"
+Name: "{userdesktop}\Elvarg"; Filename: "{app}\Elvarg.exe"; Tasks: DesktopIcon
 
 [Run]
-Filename: "{app}\RuneLite.exe"; Parameters: "--postinstall"; Flags: nowait
-Filename: "{app}\RuneLite.exe"; Description: "&Open RuneLite"; Flags: postinstall skipifsilent nowait
+Filename: "{app}\Elvarg.exe"; Parameters: "--postinstall"; Flags: nowait
+Filename: "{app}\Elvarg.exe"; Description: "&Open Elvarg"; Flags: postinstall skipifsilent nowait
 
 [InstallDelete]
 ; Delete the old jvm so it doesn't try to load old stuff with the new vm and crash
