@@ -35,6 +35,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
@@ -157,7 +158,7 @@ public class FatalErrorDialog extends JDialog
 		addButton("Exit", () -> System.exit(-1));
 
 		pack();
-		SplashScreen.stop();
+		Launcher.close();
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
@@ -215,7 +216,7 @@ public class FatalErrorDialog extends JDialog
 			return;
 		}
 
-		if (err instanceof ConnectException)
+		if (err instanceof SocketException)
 		{
 			new FatalErrorDialog("{name} is unable to connect to a required server while " + action + ". " +
 				"Please check your internet connection")

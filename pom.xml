@@ -156,12 +156,24 @@
 
 		<resources>
 			<resource>
-				<targetPath>${basedir}/target/classes/net/runelite/launcher/</targetPath>
-				<filtering>false</filtering>
-				<directory>${basedir}/src/main/resources/net/runelite/launcher/</directory>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>*.ico</exclude>
+					<exclude>*.bmp</exclude>
+					<exclude>*.png</exclude>
+					<exclude>logback.xml</exclude>
+				</excludes>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
 				<includes>
-					<include>*</include>
+					<include>*.ico</include>
+					<include>*.bmp</include>
+					<include>*.png</include>
+					<include>logback.xml</include>
 				</includes>
+				<filtering>false</filtering>
 			</resource>
 		</resources>
 
@@ -177,11 +189,33 @@
 						<arg>target/headers</arg>
 					</compilerArgs>
 				</configuration>
+				<executions>
+					<execution>
+						<id>compile-java8</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<source>1.8</source>
+							<target>1.8</target>
+							<release combine.self="override" />
+							<compileSourceRoots>
+								<compileSourceRoot>${project.basedir}/src/main/java8</compileSourceRoot>
+							</compileSourceRoots>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.2.0</version>
+				<configuration>
+					<archive>
+						<!-- generated pom.properties uses system-dependent line separator -->
+						<addMavenDescriptor>false</addMavenDescriptor>
+					</archive>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

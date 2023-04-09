@@ -26,9 +26,6 @@ OutputBaseFilename=ElvargSetup32
 Name: DesktopIcon; Description: "Create a &desktop icon";
 
 [Files]
-Source: "${basedir}\app.ico"; DestDir: "{app}"
-Source: "${basedir}\left.bmp"; DestDir: "{app}"
-Source: "${basedir}\app_small.bmp"; DestDir: "{app}"
 Source: "${basedir}\native-win32\Elvarg.exe"; DestDir: "{app}"
 Source: "${basedir}\native-win32\Elvarg.jar"; DestDir: "{app}"
 Source: "${basedir}\native\build32\Release\launcher_x86.dll"; DestDir: "{app}"
@@ -37,8 +34,10 @@ Source: "${basedir}\native-win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesub
 
 [Icons]
 ; start menu
-Name: "{userprograms}\Elvarg"; Filename: "{app}\Elvarg.exe"
-Name: "{userdesktop}\Elvarg"; Filename: "{app}\Elvarg.exe"; Tasks: DesktopIcon
+Name: "{userprograms}\RuneLite\Elvarg"; Filename: "{app}\Elvarg.exe"
+Name: "{userprograms}\RuneLite\Elvarg (configure)"; Filename: "{app}\Elvarg.exe"; Parameters: "--configure"
+Name: "{userprograms}\RuneLite\Elvarg (safe mode)"; Filename: "{app}\Elvarg.exe"; Parameters: "--safe-mode"
+Name: "{userdesktop}\RuneLite"; Filename: "{app}\Elvarg.exe"; Tasks: DesktopIcon
 
 [Run]
 Filename: "{app}\Elvarg.exe"; Parameters: "--postinstall"; Flags: nowait
@@ -47,9 +46,11 @@ Filename: "{app}\Elvarg.exe"; Description: "&Open Elvarg"; Flags: postinstall sk
 [InstallDelete]
 ; Delete the old jvm so it doesn't try to load old stuff with the new vm and crash
 Type: filesandordirs; Name: "{app}\jre"
+; previous shortcut
+Type: files; Name: "{userprograms}\Elvarg.lnk"
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository2"
+Type: filesandordirs; Name: "{%USERPROFILE}\.elvarg\repository2"
 ; includes install_id, settings, etc
 Type: filesandordirs; Name: "{app}"
 

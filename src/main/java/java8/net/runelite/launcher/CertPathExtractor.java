@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2022, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,50 +22,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.launcher;
+package java8.net.runelite.launcher;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Collection;
-import java.util.List;
-import javax.swing.UIManager;
-import lombok.extern.slf4j.Slf4j;
+import javax.net.ssl.SSLHandshakeException;
+import sun.security.provider.certpath.AdjacencyList;
+import sun.security.provider.certpath.SunCertPathBuilderException;
+import sun.security.validator.ValidatorException;
 
-@Slf4j
-class ReflectionLauncher
+class CertPathExtractor
 {
-	static void launch(List<File> classpath, Collection<String> clientArgs, String type) throws MalformedURLException
+	static String extract(Throwable ex)
 	{
-		URL[] jarUrls = new URL[classpath.size()];
-		int i = 0;
-		for (var file : classpath)
+		try
 		{
-			log.debug("Adding jar: {}", file);
-			jarUrls[i++] = file.toURI().toURL();
+			if (ex instanceof SSLHandshakeException)
+			{
+				ex = ex.getCause();
+				if (ex instanceof ValidatorException)
+				{
+					ex = ex.getCause();
+					if (ex instanceof SunCertPathBuilderException)
+					{
+						SunCertPathBuilderException pathBuilderEx = (SunCertPathBuilderException) ex;
+						AdjacencyList adjList = pathBuilderEx.getAdjacencyList();
+						return adjList.toString();
+					}
+				}
+			}
 		}
-
-		ClassLoader parent = ClassLoader.getPlatformClassLoader();
-		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
-
-		UIManager.put("ClassLoader", loader); // hack for Substance
-		Thread thread = new Thread(() ->
+		catch (Throwable ex_)
 		{
-			try
-			{
-				Class<?> mainClass = loader.loadClass(Launcher.clientTypes.get(type).getMain());
-
-				Method main = mainClass.getMethod("main", String[].class);
-				main.invoke(null, (Object) clientArgs.toArray(new String[0]));
-			}
-			catch (Exception ex)
-			{
-				log.error("Unable to launch client", ex);
-			}
-		});
-		thread.setName(LauncherProperties.getApplicationName());
-		thread.start();
+		}
+		return null;
 	}
 }

@@ -37,16 +37,20 @@ Source: "${basedir}\native-win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesub
 
 [Icons]
 ; start menu
-Name: "{userprograms}\Elvarg"; Filename: "{app}\Elvarg.exe"
-Name: "{userdesktop}\Elvarg"; Filename: "{app}\Elvarg.exe"; Tasks: DesktopIcon
+Name: "{userprograms}\RuneLite\Elvarg"; Filename: "{app}\Elvarg.exe"
+Name: "{userprograms}\RuneLite\Elvarg (configure)"; Filename: "{app}\Elvarg.exe"; Parameters: "--configure"
+Name: "{userprograms}\RuneLite\Elvarg (safe mode)"; Filename: "{app}\Elvarg.exe"; Parameters: "--safe-mode"
+Name: "{userdesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: DesktopIcon
 
 [Run]
-Filename: "{app}\Elvarg.exe"; Parameters: "--postinstall"; Flags: nowait
-Filename: "{app}\Elvarg.exe"; Description: "&Open Elvarg"; Flags: postinstall skipifsilent nowait
+Filename: "{app}\RuneLite.exe"; Parameters: "--postinstall"; Flags: nowait
+Filename: "{app}\RuneLite.exe"; Description: "&Open RuneLite"; Flags: postinstall skipifsilent nowait
 
 [InstallDelete]
 ; Delete the old jvm so it doesn't try to load old stuff with the new vm and crash
 Type: filesandordirs; Name: "{app}\jre"
+; previous shortcut
+Type: files; Name: "{userprograms}\Elvarg.lnk"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{%USERPROFILE}\.elvarg\repository2"

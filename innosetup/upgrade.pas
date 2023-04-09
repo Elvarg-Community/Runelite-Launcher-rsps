@@ -12,10 +12,10 @@ begin
   if CurStep = ssPostInstall then begin
     WriteInstallId();
 
-    rlUpgrade := GetEnv('ELVARG_UPGRADE');
+    rlUpgrade := GetEnv('RUNELITE_UPGRADE');
     if rlUpgrade <> '' then begin
-      exePath := ExpandConstant('{app}\Elvarg.exe');
-      Exec(exePath, GetEnv('ELVARG_UPGRADE_PARAMS'), '', SW_SHOW, ewNoWait, ResultCode);
+      exePath := ExpandConstant('{app}\RuneLite.exe');
+      Exec(exePath, GetEnv('RUNELITE_UPGRADE_PARAMS'), '', SW_SHOW, ewNoWait, ResultCode);
     end;
   end;
 end;
