@@ -306,10 +306,6 @@ public class Launcher
 			log.error("Failure during startup", e);
 			throw e;
 		}
-		finally
-		{
-			close();
-		}
 	}
 
 	public static void launch(String type, String[] args, LauncherSettings settings, Map<String, String> jvmProps, boolean postInstall) {
@@ -471,7 +467,7 @@ public class Launcher
 			{
 				// launch mode JVM or AUTO outside of packr
 				log.debug("Using launch mode: JVM");
-				JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams,"");
+				JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams,type);
 			}
 		} catch (Exception e) {
 			log.error("Failure during startup", e);
