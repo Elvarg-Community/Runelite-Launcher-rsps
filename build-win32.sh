@@ -5,6 +5,8 @@ set -e
 PACKR_VERSION="runelite-1.7"
 PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
 
+source .jdk-versions.sh
+
 if ! [ -f win32_jre.zip ] ; then
     curl -Lo win32_jre.zip $WIN32_LINK
 fi
