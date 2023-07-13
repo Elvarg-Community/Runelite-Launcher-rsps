@@ -22,3 +22,7 @@ LINUX_AMD64_LINK=https://github.com/adoptium/temurin11-binaries/releases/downloa
 LINUX_AARCH64_VERSION=11.0.19+7
 LINUX_AARCH64_CHKSUM=1fe4b20d808f393422610818711c728331992a4455eeeb061d3d05b45412771d
 LINUX_AARCH64_LINK=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.19%2B7/OpenJDK11U-jre_aarch64_linux_hotspot_11.0.19_7.tar.gz
+# windows aarch64
+WIN_AARCH64_VERSION=11.0.19+7
+WIN_AARCH64_CHKSUM=2f321bfe2cd2a4759b061f37c82d57d8944e0983bda84d6f9a4d790dd21ccb94
+WIN_AARCH64_LINK=https://aka.ms/download-jdk/microsoft-jdk-11.0.19-windows-aarch64.zip
