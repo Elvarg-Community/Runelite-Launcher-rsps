@@ -57,6 +57,11 @@ jobs:
       run: |
         cmake -S native -B native/build32 -A Win32
         cmake --build native/build32 --config Release
+    - name: build dll aarch64
+      shell: cmd
+      run: |
+        cmake -S native -B native/buildaarch64 -A ARM64
+        cmake --build native/buildaarch64 --config Release
     - name: build launcher
       run: mvn verify -B
     - name: x64 installer
@@ -65,12 +70,16 @@ jobs:
     - name: x86 installer
       shell: bash
       run: ./build-win32.sh
+    - name: AArch64 installer
+      shell: bash
+      run: ./build-win-aarch64.sh
     - uses: actions/upload-artifact@v3
       with:
         name: windows
         path: |
           ElvargSetup64.exe
           ElvargSetup32.exe
+          ElvargSetupAArch64.exe
         if-no-files-found: error
   linux:
     runs-on: ubuntu-20.04
