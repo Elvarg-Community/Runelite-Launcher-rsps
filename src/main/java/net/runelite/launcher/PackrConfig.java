@@ -28,13 +28,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+
+import java.io.*;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -98,10 +95,11 @@ class PackrConfig
 
 			try (FileOutputStream fout = new FileOutputStream(tmpFile);
 				 FileChannel channel = fout.getChannel();
-				 PrintWriter writer = new PrintWriter(fout))
+				 OutputStreamWriter writer = new OutputStreamWriter(fout, StandardCharsets.UTF_8))
 			{
 				channel.lock();
-				writer.write(gson.toJson(config));
+				gson.toJson(config, writer);
+				writer.flush();
 				channel.force(true);
 				// FileChannel.close() frees the lock
 			}

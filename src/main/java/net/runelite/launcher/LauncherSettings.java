@@ -196,8 +196,8 @@ class LauncherSettings
 				 OutputStreamWriter writer = new OutputStreamWriter(fout, StandardCharsets.UTF_8))
 			{
 				channel.lock();
-				writer.write(gson.toJson(settings));
-				channel.force(true);
+				gson.toJson(settings, writer);
+				writer.flush();
 				// FileChannel.close() frees the lock
 			}
 
