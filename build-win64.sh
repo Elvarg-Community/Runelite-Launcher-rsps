@@ -2,10 +2,18 @@
 
 set -e
 
-PACKR_VERSION="runelite-1.9"
-PACKR_HASH="544efb4a88f561aa40a6dc9453d13a00231f10ed867f741ac7f6ded2757c1b8d"
+cmake -S liblauncher -B liblauncher/build64 -A x64
+cmake --build liblauncher/build64 --config Release
+
+pushd native
+cmake -B build-x64 -A x64
+cmake --build build-x64 --config Release
+popd
 
 source .jdk-versions.sh
+
+rm -rf build/win-x64
+mkdir -p build/win-x64
 
 if ! [ -f win64_jre.zip ] ; then
     curl -Lo win64_jre.zip $WIN64_LINK
@@ -13,32 +21,18 @@ fi
 
 echo "$WIN64_CHKSUM win64_jre.zip" | sha256sum -c
 
-# packr requires a "jdk" and pulls the jre from it - so we have to place it inside
-# the jdk folder at jre/
-if ! [ -d win64-jdk ] ; then
-    unzip win64_jre.zip
-    mkdir win64-jdk
-    mv jdk-$WIN64_VERSION-jre win64-jdk/jre
-fi
+cp native/build-x64/src/Release/Elvarg.exe build/win-x64/
+cp target/Elvarg.jar build/win-x64/
+cp packr/win-x64-config.json build/win-x64/config.json
+cp liblauncher/build64/Release/launcher_amd64.dll build/win-x64/
 
-if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
-    curl -Lo packr_${PACKR_VERSION}.jar \
-        https://github.com/runelite/packr/releases/download/${PACKR_VERSION}/packr.jar
-fi
-
-echo "${PACKR_HASH}  packr_${PACKR_VERSION}.jar" | sha256sum -c
-
-java -jar packr_${PACKR_VERSION}.jar \
-    packr/win-x64-config.json
-
-tools/rcedit-x64 native-win64/Elvarg.exe \
-  --application-manifest packr/app.manifest \
-  --set-icon app.ico
+unzip win64_jre.zip
+mv jdk-$WIN64_VERSION-jre build/win-x64/jre
 
 echo Elvarg.exe 64bit sha256sum
-sha256sum native-win64/Elvarg.exe
+sha256sum build/win-x64/Elvarg.exe
 
-dumpbin //HEADERS native-win64/Elvarg.exe
+dumpbin //HEADERS build/win-x64/Elvarg.exe
 
 # We use the filtered iss file
 iscc target/filtered-resources/app.iss

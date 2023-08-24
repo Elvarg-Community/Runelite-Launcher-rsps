@@ -29,11 +29,11 @@ Name: DesktopIcon; Description: "Create a &desktop icon";
 Source: "${basedir}\app.ico"; DestDir: "{app}"
 Source: "${basedir}\left.bmp"; DestDir: "{app}"
 Source: "${basedir}\app_small.bmp"; DestDir: "{app}"
-Source: "${basedir}\native-win64\Elvarg.exe"; DestDir: "{app}"
-Source: "${basedir}\native-win64\Elvarg.jar"; DestDir: "{app}"
-Source: "${basedir}\native\build64\Release\launcher_amd64.dll"; DestDir: "{app}"
-Source: "${basedir}\native-win64\config.json"; DestDir: "{app}"
-Source: "${basedir}\native-win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
+Source: "${basedir}\build\win-x64\Elvarg.exe"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\Elvarg.jar"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\launcher_amd64.dll"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\config.json"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 
 [Icons]
 ; start menu

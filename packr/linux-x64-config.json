@@ -1,20 +1,12 @@
 {
-    "platform": "linux64",
-    "jdk": "linux-jdk",
-    "executable": "Elvarg",
-    "classpath": [
-        "target/Elvarg.jar"
+    "classPath": [
+        "Elvarg.jar"
     ],
-    "mainclass": "net.runelite.launcher.Launcher",
-    "vmargs": [
+    "mainClass": "net.runelite.launcher.Launcher",
+    "vmArgs": [
        "-Drunelite.launcher.reflect=true",
        "-Xmx512m",
        "-Xss2m",
        "-XX:CompileThreshold=1500"
-    ],
-    "output": "native-linux-x86_64/Elvarg.AppDir/",
-    "resources": [
-      "target/filtered-resources/app.desktop",
-      "appimage/app.png"
     ]
 }

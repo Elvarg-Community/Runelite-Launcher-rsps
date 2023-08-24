@@ -1,16 +1,11 @@
 {
-    "platform": "mac64",
-    "icon": "packr/app.icns",
-    "jdk": "osx-jdk",
-    "executable": "Elvarg",
-    "classpath": [
-        "target/Elvarg.jar"
+    "classPath": [
+        "Elvarg.jar"
     ],
-    "mainclass": "net.runelite.launcher.Launcher",
-    "vmargs": [
+    "mainClass": "net.runelite.launcher.Launcher",
+    "vmArgs": [
        "-Xmx512m",
        "-Xss2m",
        "-XX:CompileThreshold=1500"
-    ],
-    "output": "native-osx/Elvarg.app"
+    ]
 }

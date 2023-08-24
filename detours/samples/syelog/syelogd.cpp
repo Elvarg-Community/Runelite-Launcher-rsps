@@ -50,7 +50,6 @@ LONGLONG    s_llStartTime = 0;
 LONGLONG    s_llLastTime = 0;
 
 BOOL LogMessageV(BYTE nSeverity, PCHAR pszMsg, ...);
-VOID AcceptAndCreatePipeConnection(PCLIENT pClient, HANDLE hCompletionPort);
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -182,14 +181,8 @@ PCLIENT CreatePipeConnection(HANDLE hCompletionPort)
     }
 
     if (!ConnectNamedPipe(hPipe, pClient)) {
-        DWORD dwLastErr = GetLastError();
-        //Handle race between multiple client connections
-        //example: multi thread or client request at alomst same time.
-        if (ERROR_PIPE_CONNECTED == dwLastErr)  
-        {
-            AcceptAndCreatePipeConnection(pClient, hCompletionPort);
-        } else if ( dwLastErr != ERROR_IO_PENDING &&
-            dwLastErr != ERROR_PIPE_LISTENING) {
+        if (GetLastError() != ERROR_IO_PENDING &&
+            GetLastError() != ERROR_PIPE_LISTENING) {
             MyErrExit("ConnectNamedPipe");
         }
     }
@@ -198,25 +191,6 @@ PCLIENT CreatePipeConnection(HANDLE hCompletionPort)
                     "ConnectNamedPipe accepted immediately.");
     }
     return pClient;
-}
-
-VOID AcceptAndCreatePipeConnection(PCLIENT pClient, HANDLE hCompletionPort) {
-    DWORD nBytes = 0;
-    InterlockedIncrement(&s_nActiveClients);
-    pClient->fAwaitingAccept = FALSE;
-    BOOL b = ReadFile(pClient->hPipe,
-        &pClient->Message,
-        sizeof(pClient->Message),
-        &nBytes,
-        pClient);
-    if (!b) {
-        if (GetLastError() != ERROR_IO_PENDING) {
-            LogMessageV(SYELOG_SEVERITY_ERROR,
-                "ReadFile failed %d.", GetLastError());
-        }
-    }
-
-    CreatePipeConnection(hCompletionPort);
 }
 
 BOOL LogMessageV(BYTE nSeverity, PCHAR pszMsg, ...)
@@ -378,7 +352,22 @@ DWORD WINAPI WorkerThread(LPVOID pvVoid)
         }
 
         if (pClient->fAwaitingAccept) {
-            AcceptAndCreatePipeConnection(pClient, hCompletionPort);
+            InterlockedIncrement(&s_nActiveClients);
+            pClient->fAwaitingAccept = FALSE;
+            b = ReadFile(pClient->hPipe,
+                         &pClient->Message,
+                         sizeof(pClient->Message),
+                         &nBytes,
+                         pClient);
+            if (!b) {
+                if (GetLastError() != ERROR_IO_PENDING) {
+                    LogMessageV(SYELOG_SEVERITY_ERROR,
+                                "ReadFile failed %d.", GetLastError());
+                    continue;
+                }
+            }
+
+            CreatePipeConnection(hCompletionPort);
         }
         else {
             if (nBytes < offsetof(SYELOG_MESSAGE, szMessage)) {
