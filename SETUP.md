@@ -43,47 +43,143 @@ const val disableAWS = false
 
 ####  Setting up the release plugin
 
-* First copy the release plugin from my repo to your project here are the places to note
-    - https://github.com/Mark7625/Elvarg-Client-Public/tree/master/buildSrc <- Copy this whole dir
-    - https://github.com/Mark7625/Elvarg-Client-Public/blob/master/build.gradle.kts
-      Comapre the two files adding any missing stuff from my build gradle
-* Once you have done this you will need to make the keys to do this go to buildSrc/src/main/kotlin/keys.kt and run the file, this will make 3 files
+### settings.gradle.kts
 
-* Next to update your client all you have to do is find this task
-  ![image](https://user-images.githubusercontent.com/72366279/172919101-6155b422-84bf-4d68-84ae-7d6d0c87a3b1.png)
-  And run this will Automatically Update and share the files to the public
+![img_1.png](img_1.png)
 
-### DO NOT SHARE THE PRIVATE KEY WITH ANYONE
+Replace 607ee837e2 with the latest version found here https://jitpack.io/#Mark7625/bootstrap-release
+
+### build.gradle
+
+In the Plugin block add 
+```Kotlin
+  id("com.mark.bootstrap.bootstrap")
+```
+
+Under that add
+
+```Kotlin
+configure<BootstrapPluginExtension> {
+    uploadType.set(com.mark.bootstrap.UploadType.FTP)
+    buildType.set("normal")
+    customRepo.set("https://assets.illerai.com/LauncherTest/repo")
+    passiveMode.set(false)
+}
+```
+
+And edit the repo like for custom libs you have any. This should be the final result
+
+![img_2.png](img_2.png)
+
+
+### Template
+
+At the root of your project make a file called bootstrap.template this will allow the bootstrap save any custom args you wish to use. These are taken from runelite
+
+```json
+{
+    "clientJvm17Arguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+    ],
+    "clientJvm17MacArguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500",
+    "--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED"
+    ],
+    "clientJvm9Arguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Drunelite.launcher.blacklistedDlls=RTSSHooks.dll,RTSSHooks64.dll,NahimicOSD.dll,NahimicMSIOSD.dll,Nahimic2OSD.dll,Nahimic2DevProps.dll,k_fps32.dll,k_fps64.dll,SS2DevProps.dll,SS2OSD.dll,GTIII-OSD64-GL.dll,GTIII-OSD64-VK.dll,GTIII-OSD64.dll",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+    ],
+    "clientJvmArguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500",
+    "-Xincgc",
+    "-XX:+UseConcMarkSweepGC",
+    "-XX:+UseParNewGC"
+    ],
+    "launcherArguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Drunelite.launcher.nojvm=true",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500",
+    "-Xincgc",
+    "-XX:+UseConcMarkSweepGC",
+    "-XX:+UseParNewGC"
+    ],
+    "launcherJvm11Arguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Drunelite.launcher.nojvm=true",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+    ],
+    "launcherJvm11WindowsArguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Drunelite.launcher.nojvm=true",
+    "-Drunelite.launcher.blacklistedDlls=RTSSHooks.dll,RTSSHooks64.dll,NahimicOSD.dll,NahimicMSIOSD.dll,Nahimic2OSD.dll,Nahimic2DevProps.dll,k_fps32.dll,k_fps64.dll,SS2DevProps.dll,SS2OSD.dll,GTIII-OSD64-GL.dll,GTIII-OSD64-VK.dll,GTIII-OSD64.dll",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+    ],
+    "launcherJvm17Arguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Drunelite.launcher.nojvm=true",
+    "-Xmx512m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+    ],
+    "launcherJvm17MacArguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Drunelite.launcher.nojvm=true",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500",
+    "--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED"
+    ],
+    "launcherJvm17WindowsArguments": [
+    "-XX:+DisableAttachMechanism",
+    "-Drunelite.launcher.nojvm=true",
+    "-Drunelite.launcher.blacklistedDlls=RTSSHooks.dll,RTSSHooks64.dll,NahimicOSD.dll,NahimicMSIOSD.dll,Nahimic2OSD.dll,Nahimic2DevProps.dll,k_fps32.dll,k_fps64.dll,SS2DevProps.dll,SS2OSD.dll,GTIII-OSD64-GL.dll,GTIII-OSD64-VK.dll,GTIII-OSD64.dll",
+    "-Xmx812m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+    ]
+}
+```
 
 </details>
 
-##
-##### Setting up the Launcher
+<details>
+  <summary>Setting up the Launcher</summary>
 
 * Once you have added the release plugin into the client
-* Copy your launcher.crt that you made  into /resources/net.runelite.launcher/
+* Copy your launcher.crt that you made  into /resources/net/runelite/launcher/
 * Go into launcher.properties And edit the following 
 ```kotlin
-runelite.type.manifest=https://glacyte.co.uk/testting/ClientManifest.json
+https://assets.illerai.com/LauncherTest/ClientManifest.json
 ```
 
 Should link should go to a json on your webhost or aws that looks like this 
 ```json
 [
-    {
+  {
     "name": "Normal",
-    "main": "net.runelite.client.RuneLite",
-    "bootstrap": "https://glacyte.co.uk/testting/normal/bootstrap.json",
-    "bootstrapsig": "https://glacyte.co.uk/testting/normal/bootstrap.json.sha256",
+    "main": "com.telos.Bootstrap",
+    "bootstrap": "https://assets.illerai.com/LauncherTest/bootstrap.json",
+    "bootstrapsig": "https://assets.illerai.com/LauncherTest/bootstrap.json.sha256",
     "tooltip": "The Latest most stable Client"
-    },
-    {
-        "name": "Beta",
-        "main": "net.runelite.client.RuneLite",
-        "bootstrap": "https://glacyte.co.uk/testting/beta/bootstrap.json",
-        "bootstrapsig": "https://glacyte.co.uk/testting/beta/bootstrap.json.sha256",
-        "tooltip": "This Client may have bugs"
-    }
+  }
 ]
 ```
 
@@ -98,6 +194,10 @@ asking the user and download right away, if you have more then 2 clients it will
 - Bootstrap Sig: This is where the bootstrap Sig file of the this client is located
 - Tooltip: This the tooltip that shows when hovering over the button
 
+</details>
+
+<details>
+  <summary>Branding</summary>
 
 ### Branding
 ## Names
@@ -137,7 +237,7 @@ Make sure CC is selected and replace 'elvarg' with 'myCoolName' MAKE SURE ITS LO
 2. /app_small.bmp [60x60] [White Background]
 3. /left.bmp [164x314] [Any Background]
 4. /appimage/app.png [128x128]  [Transparent Background]
-5. /packer/app.icns https://img2icnsapp.com/how-to-create-the-best-mac-icons/
+5. /osx/app.icns https://img2icnsapp.com/how-to-create-the-best-mac-icons/
 
 ## Colors
 
@@ -162,10 +262,16 @@ public static final Color SCROLL_TRACK_COLOR = new Color(25, 25, 25);
 public static final Color PROGRESS_ERROR_COLOR = new Color(230, 30, 30);
 ```
 
+</details>
+
 ## Getting your files
 
 Once you have pushed your files to github, github actions will build your launcher you can then find them under the workflow action it runs EG: https://github.com/Elvarg-Community/Runelite-Launcher-rsps/actions/runs/3014844052
 
+![img.png](img.png)
+
 # Credits
     - Runelite For the base
     - Spooky For helping me understand the sha stuff
+
+If you need any help or want setup done for a service add me on discord [Mark_] (724620008658829363)
