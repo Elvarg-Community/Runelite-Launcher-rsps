@@ -4,43 +4,13 @@
 ### Requirements:
 
 <details>
-  <summary>Aws Setup</summary>
-
-### Setting Up AWS Bucket:
-
-1. Setting Up -  https://www.youtube.com/watch?v=i4YFFWcyeFM
-2. Getting your Acess keys - https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/
-
-![image](https://user-images.githubusercontent.com/72366279/172917501-1b3d9b77-02e4-408c-af27-8f817dab972e.png)
-* Navigate to your userhome and make a folder called .aws inside that make a file called credentials with the following content, you should of got these keys from setting up AWS part
-```kotlin
-[default]
-aws_access_key_id=
-aws_secret_access_key=
-```
-* Next Navigate to buildSrc/src/main/kotlin/Project.kt and fill the following Infomation out
-```kotlin
-const val bucketName = "test"
-const val link = ""
-const val disableAWS = false
-```
-### Key
-- Bucketname = The name you named your Bucket
-- Link = The link to your files EG: [https://elvarg.s3.us-east-2.amazonaws.com/repo/] MAKE SURE TO APPEND THE REPO ON TH END
-- disableAWS = If you want your files uploaded automatically using AWS (If you click false you will have to manually upload your files or make another way)
-
-
-</details>
-
-<details>
   <summary>Ftp Setup</summary>
     Coming Soon
 </details>
 
 
 <details>
-  <summary>Adding Release Plugin into your Client</summary>
-
+  <summary>Adding Release Plugin into your Client (Gradle)</summary>
 ####  Setting up the release plugin
 
 ### settings.gradle.kts
@@ -71,6 +41,10 @@ And edit the repo like for custom libs you have any. This should be the final re
 
 ![img_2.png](img_2.png)
 
+</details>
+
+<details>
+  <summary>Setting up the Template</summary>
 
 ### Template
 
@@ -157,7 +131,6 @@ At the root of your project make a file called bootstrap.template this will allo
     ]
 }
 ```
-
 </details>
 
 <details>
@@ -263,6 +236,13 @@ public static final Color PROGRESS_ERROR_COLOR = new Color(230, 30, 30);
 ```
 
 </details>
+
+### Tasks
+- Generate Keys - Generates new keys for the launcher
+- Makes Release files and auto dates to ftp
+- Release - Just makes the boostrap and the jar to upload manually
+
+![img_3.png](img_3.png)
 
 ## Getting your files
 
