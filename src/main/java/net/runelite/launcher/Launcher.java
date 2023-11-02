@@ -110,7 +110,7 @@ public class Launcher
 		parser.accepts("insecure-skip-tls-verification", "Disable TLS certificate and hostname verification");
 		parser.accepts("scale", "Custom scale factor for Java 2D").withRequiredArg();
 		parser.accepts("noupdate", "Skips the launcher self-update");
-		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
+		parser.accepts("help", "Show this text (use -- --help for client help)").forHelp();
 		parser.accepts("classpath", "Classpath for the client").withRequiredArg();
 		parser.accepts("J", "JVM argument (FORK or JVM launch mode only)").withRequiredArg();
 		parser.accepts("configure", "Opens configuration GUI");
@@ -245,6 +245,7 @@ public class Launcher
 
 			log.info(LauncherProperties.getApplicationName() + " Launcher version {}", LauncherProperties.getVersion());
 			log.info("Launcher configuration:" + System.lineSeparator() + "{}", settings.configurationStr());
+			log.info("OS name: {}, version: {}, arch: {}", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
 			log.info("Using hardware acceleration mode: {}", hardwareAccelMode);
 
 			// java2d properties have to be set prior to the graphics environment startup
@@ -465,6 +466,14 @@ public class Launcher
 			}
 			else
 			{
+
+
+				if (System.getenv("APPIMAGE") != null)
+				{
+					// java.home is in the appimage, so we can never use the jvm launcher
+					throw new RuntimeException("JVM launcher is not supported from the appimage");
+				}
+
 				// launch mode JVM or AUTO outside of packr
 				log.debug("Using launch mode: JVM");
 				JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams,type);
@@ -695,6 +704,11 @@ public class Launcher
 			{
 				hash = null;
 			}
+			catch (IOException ex)
+			{
+				dest.delete();
+				hash = null;
+			}
 
 			if (Objects.equals(hash, artifact.getHash()))
 			{
@@ -716,9 +730,9 @@ public class Launcher
 					{
 						oldhash = hash(old);
 					}
-					catch (FileNotFoundException ex)
+					catch (IOException ex)
 					{
-						oldhash = null;
+						continue;
 					}
 
 					// Check if old file is valid
