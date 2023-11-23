@@ -147,6 +147,8 @@ jobs:
         run: chmod +x ./build-osx-x64.sh
       - name: macos-x64
         run: ./build-osx-x64.sh --build --dmg
+      - name: cmod macos-aarch64
+        run: chmod +x ./build-osx-aarch64.sh
       - name: macos-aarch64
         run: ./build-osx-aarch64.sh --build --dmg
       # tar app to keep permissions correct
