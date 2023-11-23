@@ -1,1 +1,24 @@
+#include "winres.h"
+
 APP_ICON ICON app.ico
+
+1 VERSIONINFO
+FILEFLAGS       0
+FILEOS          VOS__WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "FileDescription",  "Elvarg"
+            VALUE "OriginalFilename", "Elvarg.exe"
+            VALUE "ProductName",      "Elvarg Launcher"
+        END
+    END
+
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 0x4B0
+    END
+END

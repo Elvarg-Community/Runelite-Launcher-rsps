@@ -20,7 +20,7 @@ Compression=lzma2
 SolidCompression=yes
 
 OutputDir=${basedir}
-OutputBaseFilename=ElvargSetup64
+OutputBaseFilename=ElvargSetup
 
 [Tasks]
 Name: DesktopIcon; Description: "Create a &desktop icon";
