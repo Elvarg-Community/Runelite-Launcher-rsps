@@ -154,16 +154,6 @@
 	<build>
 		<finalName>Elvarg</finalName>
 
-		<resources>
-			<resource>
-				<targetPath>${basedir}/target/classes/net/runelite/launcher/</targetPath>
-				<filtering>false</filtering>
-				<directory>${basedir}/src/main/resources/net/runelite/launcher/</directory>
-				<includes>
-					<include>*</include>
-				</includes>
-			</resource>
-		</resources>
 
 		<plugins>
 			<plugin>
@@ -231,6 +221,7 @@
 						<configuration>
 							<outputDirectory>${basedir}/target/filtered-resources</outputDirectory>
 							<resources>
+
 								<resource>
 									<directory>appimage</directory>
 									<filtering>true</filtering>
