@@ -29,7 +29,7 @@
 
 	<groupId>net.runelite</groupId>
 	<artifactId>launcher</artifactId>
-	<version>2.7.2-SNAPSHOT</version>
+	<version>1.0</version>
 	<name>Elvarg Launcher</name>
 	<description>Launcher for Elvarg client</description>
 
@@ -156,23 +156,44 @@
 
 		<resources>
 			<resource>
-				<directory>src/main/resources</directory>
-				<excludes>
-					<exclude>logback.xml</exclude>
-				</excludes>
-				<filtering>true</filtering>
-			</resource>
-			<resource>
-				<directory>src/main/resources</directory>
-				<includes>
-					<include>logback.xml</include>
-				</includes>
+				<targetPath>${basedir}/target/classes/net/runelite/launcher/</targetPath>
 				<filtering>false</filtering>
+				<directory>${basedir}/src/main/resources/net/runelite/launcher/</directory>
+				<includes>
+					<include>*</include>
+				</includes>
 			</resource>
 		</resources>
 
 		<plugins>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<release>11</release>
+					<compilerArgs>
+						<arg>-h</arg>
+						<arg>target/headers</arg>
+					</compilerArgs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>compile-java8</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<source>1.8</source>
+							<target>1.8</target>
+							<release combine.self="override" />
+							<compileSourceRoots>
+								<compileSourceRoot>${project.basedir}/src/main/java8</compileSourceRoot>
+							</compileSourceRoots>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -255,7 +276,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>net.runelite.maven</groupId>
 				<artifactId>dependency-lock-plugin</artifactId>
