@@ -88,9 +88,9 @@ public class JavaInstaller {
                 // Process all files in the app data directory
                 processFiles(installPath);
                 storeLocalHash(javaChecksum);
+                stage(0,"", "Finished Downloading Java");
             }
 
-            stage(0,"", "Finished Downloading Java");
         } catch (IOException e) {
             e.printStackTrace();
         }

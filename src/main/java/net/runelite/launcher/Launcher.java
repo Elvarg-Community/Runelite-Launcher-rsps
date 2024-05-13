@@ -37,14 +37,8 @@ import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.HttpURLConnection;
@@ -96,7 +90,7 @@ public class Launcher
 	private static final String USER_AGENT = LauncherProperties.getApplicationName() + "/" + LauncherProperties.getVersion();
 	static final String LAUNCHER_EXECUTABLE_NAME_WIN = LauncherProperties.getApplicationName() + ".exe";
 	static final String LAUNCHER_EXECUTABLE_NAME_OSX = LauncherProperties.getApplicationName();
-	public static String forcedJava;
+	public static String forcedJava = "";
 
 	static HashMap<String, ClientType> clientTypes = new HashMap<>();
 
@@ -387,13 +381,15 @@ public class Launcher
 			}
 
 
-			String version = System.getProperty("java.version");
-			int majorVersion = Integer.parseInt(version.split("\\.")[1]);
+			String version = getJavaRuntimeVersion();
+			int majorVersion = getMajorJavaVersion(version);
 
 			if (majorVersion < 11) {
 				log.info("User using below java 11");
 				stage(.05, null, "Checking Java Version");
 				JavaInstaller.init();
+			} else {
+				log.info("User using 11 or above");
 			}
 
 			// Determine artifacts for this OS
@@ -510,6 +506,27 @@ public class Launcher
 			close();
 		}
 	}
+
+	private static String getJavaRuntimeVersion() {
+		RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+		return runtimeMXBean.getSpecVersion();
+	}
+
+	private static int getMajorJavaVersion(String version) {
+		String[] versionElements = version.split("\\.");
+
+		int majorVersion;
+		if (version.startsWith("1.")) {
+			// Versions like 1.8.0_271
+			majorVersion = Integer.parseInt(versionElements[1]);
+		} else {
+			// Versions like 9, 10, 11, 12, 13, ...
+			majorVersion = Integer.parseInt(versionElements[0]);
+		}
+
+		return majorVersion;
+	}
+
 
 
 	private static void setJvmParams(final Map<String, String> params)
