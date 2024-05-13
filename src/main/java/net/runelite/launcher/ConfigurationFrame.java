@@ -32,6 +32,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -68,7 +69,7 @@ public class ConfigurationFrame extends JFrame
         setTitle(LauncherProperties.getApplicationName() + " Launcher Configuration");
 
         BufferedImage logo;
-        try (var in = SplashScreen.class.getResourceAsStream("runelite_transparent.png"))
+        try (InputStream in = SplashScreen.class.getResourceAsStream("runelite_transparent.png"))
         {
             logo = ImageIO.read(in);
         }
@@ -84,7 +85,7 @@ public class ConfigurationFrame extends JFrame
         pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
         pane.setBackground(DARKER_GRAY_COLOR);
 
-        var topPanel = new JPanel();
+        JPanel topPanel = new JPanel();
         topPanel.setBackground(DARKER_GRAY_COLOR);
         topPanel.setLayout(new GridLayout(3, 2, 0, 0));
         topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
@@ -121,7 +122,7 @@ public class ConfigurationFrame extends JFrame
 
         pane.add(topPanel);
 
-        var midPanel = new JPanel();
+        JPanel midPanel = new JPanel();
         midPanel.setBackground(DARKER_GRAY_COLOR);
         midPanel.setLayout(new GridLayout(2, 2, 0, 0));
 
@@ -130,7 +131,7 @@ public class ConfigurationFrame extends JFrame
                 "Arguments passed to the client. One per line."
         ));
 
-        var sp = new JScrollPane(txtClientArguments = area(Joiner.on('\n').join(settings.clientArguments)),
+        JScrollPane sp = new JScrollPane(txtClientArguments = area(Joiner.on('\n').join(settings.clientArguments)),
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         midPanel.add(sp);
 
@@ -145,7 +146,7 @@ public class ConfigurationFrame extends JFrame
 
         pane.add(midPanel);
 
-        var bottomPanel = new JPanel();
+        JPanel bottomPanel = new JPanel();
         bottomPanel.setBackground(DARKER_GRAY_COLOR);
         bottomPanel.setLayout(new GridLayout(3, 2, 0, 0));
 
@@ -172,14 +173,14 @@ public class ConfigurationFrame extends JFrame
 
         pane.add(bottomPanel);
 
-        var buttonPanel = new JPanel();
+        JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(DARKER_GRAY_COLOR);
 
-        var save = new JButton("Save");
+        JButton save = new JButton("Save");
         save.addActionListener(this::save);
         buttonPanel.add(save);
 
-        var cancel = new JButton("Cancel");
+        JButton cancel = new JButton("Cancel");
         cancel.addActionListener(l -> dispose());
         buttonPanel.add(cancel);
 
@@ -192,14 +193,14 @@ public class ConfigurationFrame extends JFrame
 
     private void save(ActionEvent l)
     {
-        var settings = LauncherSettings.loadSettings();
+        LauncherSettings settings = LauncherSettings.loadSettings();
         settings.debug = chkboxDebug.isSelected();
         settings.nodiffs = chkboxNoDiffs.isSelected();
         settings.skipTlsVerification = chkboxSkipTlsVerification.isSelected();
         settings.noupdates = chkboxNoUpdates.isSelected();
         settings.safemode = chkboxSafemode.isSelected();
 
-        var t = txtScale.getText();
+        String t = txtScale.getText();
         settings.scale = null;
         if (!t.isEmpty())
         {
@@ -234,7 +235,7 @@ public class ConfigurationFrame extends JFrame
 
     private static JLabel label(String name, String tooltip)
     {
-        var label = new JLabel(name);
+        JLabel label = new JLabel(name);
         label.setToolTipText(tooltip);
         label.setForeground(Color.WHITE);
         return label;
@@ -252,7 +253,7 @@ public class ConfigurationFrame extends JFrame
 
     private static JCheckBox checkbox(String name, String tooltip, boolean checked)
     {
-        var checkbox = new JCheckBox(name);
+        JCheckBox checkbox = new JCheckBox(name);
         checkbox.setSelected(checked);
         checkbox.setToolTipText(tooltip);
         checkbox.setForeground(Color.WHITE);
@@ -262,7 +263,7 @@ public class ConfigurationFrame extends JFrame
 
     private static <E> JComboBox<E> combobox(E[] values, E default_)
     {
-        var combobox = new JComboBox<>(values);
+        JComboBox combobox = new JComboBox<>(values);
         combobox.setSelectedItem(default_);
         return combobox;
     }

@@ -31,6 +31,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
@@ -68,7 +69,7 @@ public class SplashScreen extends JFrame implements ActionListener
 	private SplashScreen() throws IOException
 	{
 		BufferedImage logo;
-		try (var in = SplashScreen.class.getResourceAsStream("runelite_transparent.png"))
+		try (InputStream in = SplashScreen.class.getResourceAsStream("runelite_transparent.png"))
 		{
 			logo = ImageIO.read(in);
 		}

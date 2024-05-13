@@ -45,7 +45,7 @@ class PackrConfig
 	// Update the packr config
 	static void updateLauncherArgs(Bootstrap bootstrap)
 	{
-		var os = OS.getOs();
+		OS.OSType os = OS.getOs();
 		if (os != OS.OSType.Windows && os != OS.OSType.MacOS)
 		{
 			return;

@@ -33,7 +33,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import javax.net.ssl.HttpsURLConnection;
+import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -54,10 +54,10 @@ class TrustManagerUtil
             old = System.clearProperty("javax.net.ssl.trustStoreType");
         }
 
-        var trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init((KeyStore) null);
 
-        var trustManagers = trustManagerFactory.getTrustManagers();
+        TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
 
         // restore old value
         if (old == null)
@@ -82,22 +82,22 @@ class TrustManagerUtil
         // Use the Windows Trusted Root Certificate Authorities in addition to the bundled cacerts.
         // Corporations, schools, antivirus, and malware commonly install root certificates onto
         // machines for security or other reasons that are not present in the JRE certificate store.
-        var jreTms = loadTrustManagers(null);
-        var windowsTms = loadTrustManagers("Windows-ROOT");
+        TrustManager[] jreTms = loadTrustManagers(null);
+        TrustManager[] windowsTms = loadTrustManagers("Windows-ROOT");
 
-        var trustManagers = new TrustManager[jreTms.length + windowsTms.length];
+        TrustManager[] trustManagers = new TrustManager[jreTms.length + windowsTms.length];
         System.arraycopy(jreTms, 0, trustManagers, 0, jreTms.length);
         System.arraycopy(windowsTms, 0, trustManagers, jreTms.length, windowsTms.length);
 
         // Even though SSLContext.init() accepts TrustManager[], Sun's SSLContextImpl only picks the first
         // X509TrustManager and uses that.
-        var combiningTrustManager = new X509TrustManager()
+        X509TrustManager combiningTrustManager = new X509TrustManager()
         {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException
             {
                 CertificateException exception = null;
-                for (var trustManager : trustManagers)
+                for (TrustManager trustManager : trustManagers)
                 {
                     if (trustManager instanceof X509TrustManager)
                     {
@@ -126,7 +126,7 @@ class TrustManagerUtil
             public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
             {
                 CertificateException exception = null;
-                for (var trustManager : trustManagers)
+                for (TrustManager trustManager : trustManagers)
                 {
                     if (trustManager instanceof X509TrustManager)
                     {
@@ -154,8 +154,8 @@ class TrustManagerUtil
             @Override
             public X509Certificate[] getAcceptedIssuers()
             {
-                var certificates = new ArrayList<X509Certificate>();
-                for (var trustManager : trustManagers)
+                List<X509Certificate> certificates = new ArrayList<X509Certificate>();
+                for (TrustManager trustManager : trustManagers)
                 {
                     if (trustManager instanceof X509TrustManager)
                     {
@@ -169,9 +169,6 @@ class TrustManagerUtil
         SSLContext sc = SSLContext.getInstance("TLS");
         sc.init(null, new TrustManager[]{combiningTrustManager}, new SecureRandom());
         SSLContext.setDefault(sc);
-        // HttpsURLConnection has its own SSLSocketFactory cache which defaults to SSLContext.getDefault().getSocketFactory()
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        // SSLSocketFactory also has its own SSLSocketFactory cache, but it can't be changed
     }
 
     static void setupInsecureTrustManager() throws NoSuchAlgorithmException, KeyManagementException
@@ -199,8 +196,5 @@ class TrustManagerUtil
         SSLContext sc = SSLContext.getInstance("TLS");
         sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
         SSLContext.setDefault(sc);
-        // HttpsURLConnection has its own SSLSocketFactory cache which defaults to SSLContext.getDefault().getSocketFactory()
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
     }
 }

@@ -49,10 +49,15 @@ class JvmLauncher
 	{
 		Path javaHome = Paths.get(System.getProperty("java.home"));
 
-		if (!Files.exists(javaHome))
-		{
-			throw new FileNotFoundException("JAVA_HOME is not set correctly! directory \"" + javaHome + "\" does not exist.");
+		if (!Launcher.forcedJava.isEmpty()) {
+			javaHome = Paths.get(Launcher.forcedJava);
+		} else {
+			if (!Files.exists(javaHome))
+			{
+				throw new FileNotFoundException("JAVA_HOME is not set correctly! directory \"" + javaHome + "\" does not exist.");
+			}
 		}
+
 
 		Path javaPath = Paths.get(javaHome.toString(), "bin", "java.exe");
 
@@ -77,7 +82,7 @@ class JvmLauncher
 			List<String> jvmArgs,String type) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
-		for (var f : classpath)
+		for (File f : classpath)
 		{
 			if (classPath.length() > 0)
 			{

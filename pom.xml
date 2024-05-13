@@ -163,37 +163,18 @@
 					<include>*</include>
 				</includes>
 			</resource>
+			<resource>
+				<targetPath>${basedir}/target/classes/</targetPath>
+				<filtering>false</filtering>
+				<directory>${basedir}/src/main/resources/</directory>
+				<includes>
+					<include>*</include>
+				</includes>
+			</resource>
 		</resources>
 
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<release>11</release>
-					<compilerArgs>
-						<arg>-h</arg>
-						<arg>target/headers</arg>
-					</compilerArgs>
-				</configuration>
-				<executions>
-					<execution>
-						<id>compile-java8</id>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<source>1.8</source>
-							<target>1.8</target>
-							<release combine.self="override" />
-							<compileSourceRoots>
-								<compileSourceRoot>${project.basedir}/src/main/java8</compileSourceRoot>
-							</compileSourceRoots>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>

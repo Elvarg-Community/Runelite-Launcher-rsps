@@ -41,13 +41,13 @@ class ReflectionLauncher
 	{
 		URL[] jarUrls = new URL[classpath.size()];
 		int i = 0;
-		for (var file : classpath)
+		for (File file : classpath)
 		{
 			log.debug("Adding jar: {}", file);
 			jarUrls[i++] = file.toURI().toURL();
 		}
 
-		ClassLoader parent = ClassLoader.getPlatformClassLoader();
+		ClassLoader parent = ClassLoader.getSystemClassLoader();
 		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
 
 		// Swing requires the UIManager ClassLoader to be set if the LAF

@@ -199,6 +199,12 @@ public class FatalErrorDialog extends JDialog
 		return this;
 	}
 
+	public static void showWindow(String message)
+	{
+		new FatalErrorDialog(message).open();
+	}
+
+
 	public static void showNetErrorWindow(String action, Throwable err)
 	{
 		if (Objects.equals(err.getMessage(), "No Clients Found"))

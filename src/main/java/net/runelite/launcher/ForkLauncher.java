@@ -28,134 +28,84 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
 
 @Slf4j
-class ForkLauncher
-{
-    static boolean canForkLaunch()
-    {
-        var os = OS.getOs();
+class ForkLauncher {
+    static boolean canForkLaunch() {
+        OS.OSType os = OS.getOs();
 
-        if (os == OS.OSType.Linux)
-        {
-            var appimage = System.getenv("APPIMAGE");
-            if (appimage != null)
-            {
+        if (os == OS.OSType.Linux) {
+            String appimage = System.getenv("APPIMAGE");
+            if (appimage != null) {
                 return true;
             }
         }
 
-        if (os == OS.OSType.Windows || os == OS.OSType.MacOS)
-        {
-            ProcessHandle current = ProcessHandle.current();
-            var command = current.info().command();
-            if (command.isEmpty())
-            {
-                return false;
+        if (os == OS.OSType.Windows || os == OS.OSType.MacOS) {
+            String command = System.getProperty("sun.java.command");
+            if (command != null && !command.isEmpty()) {
+                Path path = Paths.get(command);
+                String name = path.getFileName().toString();
+                return name.equals(Launcher.LAUNCHER_EXECUTABLE_NAME_WIN)
+                        || name.equals(Launcher.LAUNCHER_EXECUTABLE_NAME_OSX);
             }
-
-            Path path = Paths.get(command.get());
-            var name = path.getFileName().toString();
-            return name.equals(Launcher.LAUNCHER_EXECUTABLE_NAME_WIN)
-                    || name.equals(Launcher.LAUNCHER_EXECUTABLE_NAME_OSX);
         }
 
         return false;
     }
 
-    static void launch(
-            Bootstrap bootstrap,
-            List<File> classpath,
-            Collection<String> clientArgs,
-            Map<String, String> jvmProps,
-            List<String> jvmArgs) throws IOException
-    {
-        ProcessHandle current = ProcessHandle.current();
-        Path path;
+    static void launch(Bootstrap bootstrap, List<File> classpath, Collection<String> clientArgs,
+                       Map<String, String> jvmProps, List<String> jvmArgs) throws IOException {
+        String command = System.getProperty("sun.java.command");
+        Path path = Paths.get(command);
 
-        switch (OS.getOs())
-        {
-            case Windows:
-                path = Paths.get(current.info().command().get());
-                break;
-            case MacOS:
-                path = Paths.get(current.info().command().get());
-                // on macOS packr changes the cwd to the resource directory prior to launching the JVM,
-                // causing current.info().command() to return /Applications/RuneLite.app/Contents/Resources/./RuneLite
-                // despite the executable really being at /Applications/RuneLite.app/Contents/MacOS/RuneLite
-                path = path.normalize()
-                        .resolveSibling(Path.of("..", "MacOS", path.getFileName().toString()))
-                        .normalize();
-                break;
-            case Linux:
-                // the executable is in the fuse-mounted filesystem of the appimage, which goes away after the launcher
-                // exits. So relaunch the appimage instead.
-                var appimage = System.getenv("APPIMAGE");
-                path = Path.of(appimage);
-                break;
-            default:
-                throw new IllegalStateException("invalid os");
-        }
-
-        var commands = new ArrayList<>();
+        ArrayList<String> commands = new ArrayList<>();
         commands.add(path.toAbsolutePath().toString());
         commands.add("-c");
+
         // bootstrap vm args
-        var clientJvmArgs = JvmLauncher.getJvmArguments(bootstrap);
-        if (clientJvmArgs != null)
-        {
-            for (var arg : clientJvmArgs)
-            {
+        String[] clientJvmArgs = JvmLauncher.getJvmArguments(bootstrap);
+        if (clientJvmArgs != null) {
+            for (String arg : clientJvmArgs) {
                 commands.add("-J");
                 commands.add(arg);
             }
         }
         // launcher vm props
-        for (var prop : jvmProps.entrySet())
-        {
+        for (Map.Entry<String, String> prop : jvmProps.entrySet()) {
             commands.add("-J");
             commands.add("-D" + prop.getKey() + "=" + prop.getValue());
         }
         // launcher vm args
-        for (var arg : jvmArgs)
-        {
-            commands.add("-J");
-            commands.add(arg);
-        }
+        commands.addAll(jvmArgs);
 
         // program arguments
         commands.add("--");
 
-        if (classpath.isEmpty())
-        {
+        if (classpath.isEmpty()) {
             // avoid looping
-            throw new RuntimeException("cannot fork launch with an empty classpath");
+            throw new RuntimeException("Cannot fork launch with an empty classpath");
         }
 
         commands.add("--classpath");
-        var sb = new StringBuilder();
-        for (var f : classpath)
-        {
-            if (sb.length() > 0)
-            {
+        StringBuilder sb = new StringBuilder();
+        for (File f : classpath) {
+            if (sb.length() > 0) {
                 sb.append(File.pathSeparatorChar);
             }
-
             sb.append(f.getName());
         }
         commands.add(sb.toString());
 
         commands.addAll(clientArgs);
 
-        log.debug("Running process: {}", commands);
+        System.out.println("Running process: " + commands);
 
-        var builder = new ProcessBuilder(commands.toArray(new String[0]));
+        ProcessBuilder builder = new ProcessBuilder(commands);
         builder.start();
     }
 }
