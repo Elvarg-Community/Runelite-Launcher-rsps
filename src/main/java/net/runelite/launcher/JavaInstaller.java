@@ -1,6 +1,5 @@
 package net.runelite.launcher;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -183,13 +182,23 @@ public class JavaInstaller {
                 md.update(buffer, 0, bytesRead);
             }
             byte[] digest = md.digest();
-            String actualChecksum = DatatypeConverter.printHexBinary(digest).toLowerCase();
+            String actualChecksum = bytesToHex(digest).toLowerCase();
             return actualChecksum.equals(expectedChecksum.toLowerCase());
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
+
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
 
     private static void unzip(File zipFile, File destDir) throws IOException {
         try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile))) {
